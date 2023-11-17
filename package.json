@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "flask-dev": "set FLASK_DEBUG=1 && pip install -r requirements.txt && python -m flask --app api/index run -p 5328",
+    "flask-dev": "set FLASK_DEBUG=1 && pip install -r requirements.txt && python -m flask --app api/app run -p 5328",
     "next-dev": "next dev",
     "dev": "cross-env SHELL=cmd npm run next-dev && cross-env SHELL=cmd npm run flask-dev",
     "build": "next build",
@@ -33,6 +33,7 @@
     "react-dom": "^18.2.0",
     "react-helmet-async": "^1.3.0",
     "react-pdf": "^7.5.1",
+    "react-router-dom": "^6.19.0",
     "typescript": "5.0.4"
   },
   "devDependencies": {

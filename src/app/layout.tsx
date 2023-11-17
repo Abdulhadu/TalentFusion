@@ -3,6 +3,7 @@ import { baselightTheme } from "../utils/theme/DefaultColors";
 import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import React from "react";
+import '../../styles/global.css'
 
 export default function RootLayout({
   children,
