@@ -23,6 +23,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/(DashboardLayout)/ui-components/ratings/ResumeAnaylzer.js", "src/app/(DashboardLayout)/ui-components/ResumeAnalyzer/page.js", "src/app/(DashboardLayout)/components/dashboard/Recomendation.js"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/(DashboardLayout)/ui-components/ratings/ResumeAnaylzer.js", "src/app/(DashboardLayout)/ui-components/ResumeAnalyzer/page.js", "src/app/(DashboardLayout)/components/dashboard/Recomendation.js", "src/app/(DashboardLayout)/admin/page.js", "src/app/dashboard/page.js", "src/app/Services/user/dashboard/page.js"],
   "exclude": ["node_modules"]
 }
