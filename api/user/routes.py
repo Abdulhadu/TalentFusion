@@ -39,7 +39,7 @@ spacy.load('en_core_web_sm')
 from os.path import abspath
 import os
 from api.static.Courses import ds_course,web_course,android_course,ios_course,uiux_course,resume_videos,interview_videos
-
+from resume_parser import resumeparse
 
 
 user = Blueprint('user', __name__, url_prefix='/user')
@@ -204,6 +204,39 @@ def hello():
     return "Hello World!"
 
 
+# @user.route('/resumeparser', methods=['POST'])
+# def hello():
+#     if 'resume' in request.files:
+#         resume_file = request.files['resume']
+#         print("Reume Name is : ", resume_file.filename)
+#         directory_path = './Uploaded_Resumes/'
+#         if os.access(directory_path, os.W_OK):
+#             print(f"The directory '{directory_path}' has write permissions.")
+#         else:
+#             print(f"The directory '{directory_path}' does not have write permissions.")
+
+#         save_image_path = './Uploaded_Resumes/'+resume_file.filename
+#         print("Savve image pathe is :", save_image_path)
+#         try:
+#             with open(save_image_path, "wb") as f:
+#                 f.write(resume_file.read())#getbuffer() shared a memory between the object
+#                 print("Resume Opem")
+#         except:
+#             print("Fail to open File")
+
+#         resume_data = ResumeParser(save_image_path).get_extracted_data()
+#         if resume_data:
+#             data = resumeparse(save_image_path).get_extracted_data()
+#             return jsonify(data), 200
+#         else:
+#             return jsonify({"error": "No file uploaded"}), 400
+#     else:
+#         return jsonify({"error": "No file uploaded"}), 400
+#     return "Hello World!"
+
+
+  
+
 @user.route('/analyze_resume', methods=['POST'])
 def analyze_resume():
     try:
@@ -240,9 +273,12 @@ def analyze_resume():
 
             save_image_path = './Uploaded_Resumes/'+resume_file.filename
             print("Savve image pathe is :", save_image_path)
-            with open(save_image_path, "wb") as f:
-                f.write(resume_file.getbuffer())
-                print("Resume Opem")
+            try:
+                with open(save_image_path, "wb") as f:
+                    f.write(resume_file.read())#getbuffer() shared a memory between the object
+                    print("Resume Opem")
+            except:
+                print("Fail to open File")
 
             resume_data = ResumeParser(save_image_path).get_extracted_data()
             if resume_data:
@@ -287,6 +323,9 @@ def analyze_resume():
         else:
             return jsonify({"error": "No file uploaded"}), 400
     except Exception as e:
+        print(f"Error occurred: {str(e)}")
+        print(f"Problematic resume file details: {resume_file.filename}, Size: {len(resume_file.getbuffer())} bytes")
+
         return jsonify({"error": str(e)}), 500
 
 

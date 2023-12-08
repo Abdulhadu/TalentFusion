@@ -12,9 +12,18 @@ boto3
 python-dotenv
 python-decouple
 nltk
-spacy == 2.3.5
+spacy==2.3.5
 tensorflow
 fer
 pyresparser
 spacytextblob == 0.1.7
 textblob == 0.15.3
+fastapi==0.79.0
+pandas==1.4.3
+uvicorn==0.18.2
+pydantic==1.9.1
+pymongo~=4.2.0
+motor~=3.0.0
+sklearn~=0.0
+scikit-learn~=1.1.2
+sentence-transformers==2.2.2
