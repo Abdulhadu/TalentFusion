@@ -1,3 +1,4 @@
+'use client';
 import React from 'react';
 import BaseCard from '../shared/DashboardCard';
 import CircularProgress from '@mui/material/CircularProgress';

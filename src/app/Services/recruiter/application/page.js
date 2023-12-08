@@ -1,128 +1,124 @@
-'use client';
+'use client'
+import React, { useState } from "react";
 import {
-    Paper,
-    Grid,
-    Stack,
-    TextField,
-    Checkbox,
-    FormGroup,
-    FormControlLabel,
-    RadioGroup,
-    Radio,
-    FormLabel,
-    FormControl,
-    Button,
-} from '@mui/material'
-import BaseCard from '@/app/Services/components/shared/BaseCard';
-import { createTheme, ThemeProvider, styled } from '@mui/material/styles';
-const Item = styled(Paper)(({ theme }) => ({
-    ...theme.typography.body1,
-    textAlign: 'center',
-    color: theme.palette.text.secondary,
-    height: 60,
-    lineHeight: '60px',
-  }));
-  
-const darkTheme = createTheme({ palette: { mode: 'dark' } });
-const lightTheme = createTheme({ palette: { mode: 'light' } });
+  Paper,
+  Grid,
+  Stack,
+  TextField,
+  Button,
+} from "@mui/material";
+import BaseCard from "@/app/Services/components/shared/BaseCard";
+import CandidateSelection from "@/app/Services/components/dashboard/CandidateSelection";
 
-const Forms = () => {
-    return (
-      <Grid container spacing={3}>
-        <Grid item xs={12} lg={12}>
-          <BaseCard title="Form Layout">
-            <>
+const Page = () => {
+  // State to manage form data
+  const [formData, setFormData] = useState({
+    jobTitle: "Nirav Joshi",
+    venue: "",
+    description: "Default Value",
+    salary: "",
+  });
+
+  // State to manage API response
+  const [apiResponse, setApiResponse] = useState(null);
+
+  // Function to handle form field changes
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
+
+  // Function to handle form submission
+  const handleSubmit = async () => {
+    try {
+      // Make API request using fetch
+      const response = await fetch("http://127.0.0.1:5328/recruiter/post_job", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      // Parse and set the API response
+      const data = await response.json();
+      setApiResponse(data);
+
+      // Clear the form data if needed
+      // setFormData({
+      //   jobTitle: "",
+      //   venue: "",
+      //   description: "",
+      //   salary: "",
+      // });
+    } catch (error) {
+      console.error("Error submitting form:", error);
+    }
+  };
+
+  return (
+    <Grid container spacing={3}>
+      <Grid item xs={12} lg={12}>
+        <BaseCard title="Post Job Vacancy">
+          <>
             <Stack spacing={3}>
               <TextField
-                id="name-basic"
-                label="Name"
+                name="jobTitle"
+                label="Job Title"
                 variant="outlined"
-                defaultValue="Nirav Joshi"
+                value={formData.jobTitle}
+                onChange={handleInputChange}
               />
-              <TextField id="email-basic" label="Email" variant="outlined" />
+
               <TextField
-                id="pass-basic"
-                label="Password"
-                type="password"
+                name="venue"
+                label="Venue"
+                type="text"
                 variant="outlined"
+                value={formData.venue}
+                onChange={handleInputChange}
               />
               <TextField
-                id="outlined-multiline-static"
-                label="Text Area"
+                name="description"
+                label="Description"
                 multiline
                 rows={4}
-                defaultValue="Default Value"
+                variant="outlined"
+                value={formData.description}
+                onChange={handleInputChange}
               />
               <TextField
-                error
-                id="er-basic"
-                label="Error"
-                defaultValue="ad1avi"
+                name="salary"
+                label="Salary"
+                type="number"
                 variant="outlined"
+                value={formData.salary}
+                onChange={handleInputChange}
               />
-              <FormGroup>
-                <FormControlLabel
-                  control={<Checkbox defaultChecked />}
-                  label="Terms & Condition"
-                />
-                <FormControlLabel
-                  disabled
-                  control={<Checkbox />}
-                  label="Disabled"
-                />
-              </FormGroup>
-              <FormControl>
-                <FormLabel id="demo-radio-buttons-group-label">Gender</FormLabel>
-                <RadioGroup
-                  aria-labelledby="demo-radio-buttons-group-label"
-                  defaultValue="female"
-                  name="radio-buttons-group"
-                >
-                  <FormControlLabel
-                    value="female"
-                    control={<Radio />}
-                    label="Female"
-                  />
-                  <FormControlLabel
-                    value="male"
-                    control={<Radio />}
-                    label="Male"
-                  />
-                  <FormControlLabel
-                    value="other"
-                    control={<Radio />}
-                    label="Other"
-                  />
-                </RadioGroup>
-              </FormControl>
             </Stack>
             <br />
-            <Button>
-              Submit
-            </Button>
-            </>
-          </BaseCard>
-        </Grid>
-  
-        <Grid item xs={12} lg={12}>
-          <BaseCard title="Form Design Type">
-            <Stack spacing={3} direction="row">
-              <TextField
-                id="outlined-basic"
-                label="Outlined"
-                variant="outlined"
-              />
-              <TextField id="filled-basic" label="Filled" variant="filled" />
-              <TextField
-                id="standard-basic"
-                label="Standard"
-                variant="standard"
-              />
-            </Stack>
-          </BaseCard>
-        </Grid>
+            <Button onClick={handleSubmit}>Submit</Button>
+          </>
+        </BaseCard>
       </Grid>
-    );
-  };
-  
-  export default Forms;
+
+      <Grid item xs={12} lg={12}>
+        <CandidateSelection />
+      </Grid>
+
+      {/* Display API response if available */}
+      {apiResponse && (
+        <Grid item xs={12}>
+          <Paper>
+            <pre>{JSON.stringify(apiResponse, null, 2)}</pre>
+          </Paper>
+        </Grid>
+      )}
+    </Grid>
+  );
+};
+
+export default Page;

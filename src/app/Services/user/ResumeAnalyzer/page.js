@@ -41,7 +41,7 @@ const Page = () => {
         <div>
             <form method="POST" onSubmit={handleUpload} encType="multipart/form-data">
                 <input type="file" name="resume" onChange={handleChange} />
-                <button type="submit">Analyze Resume</button>
+                <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" type="submit">Analyze Resume</button>
             </form>
 
             {analysisResult && (

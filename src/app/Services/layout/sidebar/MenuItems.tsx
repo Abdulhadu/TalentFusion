@@ -39,6 +39,12 @@ const Menuitems = [
     href: "/Services/user/Sample",
   },
   {
+    id: uniqueId(),
+    title: "Job Portal",
+    icon: IconInfoCircle,
+    href: "/Services/user/Job_Portal",
+  },
+  {
     navlabel: true,
     subheader: "HR PORTAL",
   },
@@ -46,7 +52,7 @@ const Menuitems = [
     id: uniqueId(),
     title: "Dashboard",
     icon: IconHome,
-    href: "/Services",
+    href: "/Services/recruiter/dashboard",
   },
   {
     id: uniqueId(),
