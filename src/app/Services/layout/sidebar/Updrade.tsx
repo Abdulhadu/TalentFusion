@@ -17,37 +17,7 @@ const Upgrade = () => (
         overflow: "hidden",
       }}
     >
-      <Image
-        src={sidebarBuynowsvg}
-        alt={sidebarBuynowsvg}
-        className="buyNowImg"
-      />
-      <Box pb={3} pt={3}>
-        <Typography variant="h4" fontWeight="700" mb={2}>
-          Get This for Free
-        </Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          fullWidth
-          target="_blank"
-          href="https://www.wrappixel.com/templates/flexy-next-js-free-admin-template/"
-          sx={{ marginBottom: "10px" }}
-        >
-          Download Free
-        </Button>
-
-        <Button
-          color="secondary"
-          href="https://www.wrappixel.com/templates/flexy-nextjs-dashboard-material-ui/#demos"
-          fullWidth
-          target="_blank"
-          disableElevation
-          variant="contained"
-        >
-          Check Pro
-        </Button>
-      </Box>
+      
     </Box>
   </Box>
 );
