@@ -8,7 +8,7 @@ import {
   Button,
 } from "@mui/material";
 import BaseCard from "@/app/Services/components/shared/BaseCard";
-import CandidateSelection from "@/app/Services/components/dashboard/CandidateSelection";
+
 
 const Page = () => {
   // State to manage form data
@@ -105,9 +105,7 @@ const Page = () => {
         </BaseCard>
       </Grid>
 
-      <Grid item xs={12} lg={12}>
-        <CandidateSelection />
-      </Grid>
+     
 
       {/* Display API response if available */}
       {apiResponse && (

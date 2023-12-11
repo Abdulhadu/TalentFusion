@@ -1,7 +1,5 @@
 'use client'
 import React, { useState, useEffect } from "react";
-import ForwardToInboxIcon from "@mui/icons-material/ForwardToInbox";
-import CancelIcon from "@mui/icons-material/Cancel";
 import {
   Typography,
   Box,
@@ -12,11 +10,10 @@ import {
   TableRow,
   TableContainer,
   LinearProgress,
-  IconButton,
 } from "@mui/material";
 import BaseCard from "../shared/DashboardCard";
 
-const CandidateSelection = () => {
+const Job_resume_matching = () => {
   const [cvData, setCVData] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -24,7 +21,7 @@ const CandidateSelection = () => {
     const fetchData = async () => {
       try {
         const response = await fetch(
-          "http://127.0.0.1:5328/recruiter/top_resumes",
+          "http://127.0.0.1:5328/recruiter/matching",
           {
             method: "GET",
           }
@@ -34,9 +31,9 @@ const CandidateSelection = () => {
         }
         const data = await response.json();
         setCVData(data);
-        setLoading(false);
       } catch (error) {
         console.error("Error fetching CV data:", error.message);
+      } finally {
         setLoading(false);
       }
     };
@@ -51,10 +48,10 @@ const CandidateSelection = () => {
       </Box>
     );
   }
-
   return (
+
     <>
-      <BaseCard title="Top Matched and Selected Resumes">
+      <BaseCard title="Job & Resume Application Matching Stats">
         <TableContainer
           sx={{
             width: {
@@ -79,7 +76,7 @@ const CandidateSelection = () => {
                 </TableCell>
                 <TableCell>
                   <Typography color="textSecondary" variant="h6">
-                  Candidate Details
+                    Name
                   </Typography>
                 </TableCell>
                 <TableCell>
@@ -92,26 +89,36 @@ const CandidateSelection = () => {
                     Degree Level
                   </Typography>
                 </TableCell>
-                <TableCell>
+                <TableCell align="right">
                   <Typography color="textSecondary" variant="h6">
-                    Major
+                    Degree & Job Matching
                   </Typography>
                 </TableCell>
-                <TableCell>
+                <TableCell align="right">
                   <Typography color="textSecondary" variant="h6">
-                    Job_ID
+                    Major & Job Matching
                   </Typography>
                 </TableCell>
-                <TableCell>
+                <TableCell align="right">
                   <Typography color="textSecondary" variant="h6">
-                    Actions
+                    Skill Job Semantic Matching
+                  </Typography>
+                </TableCell>
+                <TableCell align="right">
+                  <Typography color="textSecondary" variant="h6">
+                    Matching Scores
+                  </Typography>
+                </TableCell>
+                <TableCell align="right">
+                  <Typography color="textSecondary" variant="h6">
+                    Job index
                   </Typography>
                 </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {cvData.map((cv, index) => (
-                <TableRow key={index}>
+              {cvData.map((cv) => (
+                <TableRow key={cv.ID}>
                   <TableCell>
                     <Typography fontSize="15px" fontWeight={500}>
                       {cv.ID}
@@ -120,11 +127,11 @@ const CandidateSelection = () => {
                   <TableCell>
                     <Box display="flex" alignItems="center">
                       <Box>
-                      <Typography variant="h6" fontWeight={600}>
-                          {cv.Name}
+                        <Typography variant="h6" fontWeight={600}>
+                          {cv.name}
                         </Typography>
                         <Typography color="textSecondary" fontSize="13px">
-                          {cv.Email}
+                          {cv.email}
                         </Typography>
                       </Box>
                     </Box>
@@ -143,44 +150,69 @@ const CandidateSelection = () => {
                         textOverflow: "ellipsis",
                       }}
                     >
-                      {cv.Skills}
+                      {cv.skills.join(", ")}
                     </Typography>
                   </TableCell>
                   <TableCell>
                     <Typography color="textSecondary" variant="h6">
-                      {cv.Degree_level}
+                      {cv.degree_level}
                     </Typography>
                   </TableCell>
                   <TableCell>
-                    <Typography
-                      color="textSecondary"
-                      variant="h6"
-                      style={{
-                        whiteSpace: "pre-wrap",
-                        wordWrap: "break-word",
-                        display: "-webkit-box",
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: "vertical",
+                    <Typography color="textSecondary" variant="h6"
+                      sx={{
+                        maxWidth: "80px", // Adjust the value as needed
                         overflow: "hidden",
                         textOverflow: "ellipsis",
-                      }}
-                    >
-                      {cv.Majors}
+                        whiteSpace: "nowrap",
+                      }}>
+                      {cv["matching score job 0"]}
                     </Typography>
                   </TableCell>
                   <TableCell>
-                    <Typography color="textSecondary" variant="h6">
-                      {cv.JOb_id}
+                    <Typography color="textSecondary" variant="h6"
+                      sx={{
+                        maxWidth: "80px", // Adjust the value as needed
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}>
+                      {cv["Major job 0 matching"]}
                     </Typography>
                   </TableCell>
-                  <TableCell align="right">
-                  <IconButton>
-                    <ForwardToInboxIcon fontSize="large" color="success" />
-                  </IconButton>
-                  <IconButton>
-                    <CancelIcon fontSize="large" sx={{ color: "#f44336" }} />
-                  </IconButton>
-                </TableCell>
+                  <TableCell>
+                    <Typography color="textSecondary" variant="h6"
+                      sx={{
+                        maxWidth: "80px", // Adjust the value as needed
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}>
+                      {cv["Skills job 0 semantic matching"]}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography color="textSecondary" variant="h6"
+                      sx={{
+                        maxWidth: "80px", // Adjust the value as needed
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}>
+                      {cv["matching score job 0"]}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography color="textSecondary" variant="h6"
+                      sx={{
+                        maxWidth: "80px", // Adjust the value as needed
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}>
+                      {cv["job index"]}
+                    </Typography>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -191,4 +223,4 @@ const CandidateSelection = () => {
   );
 };
 
-export default CandidateSelection;
+export default Job_resume_matching;

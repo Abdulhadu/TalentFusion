@@ -1,4 +1,4 @@
-
+'use client'
 import DashboardCard from '@/app/Services/components/shared/DashboardCard';
 import {
   Timeline,

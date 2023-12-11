@@ -243,6 +243,7 @@ def transform_dataframe_to_json(dataframe):
 
     return json_data
 
+
 def get_extracted_resumes():
     jd = [] 
     try:
@@ -303,6 +304,7 @@ def get_extracted_jobs():
     jobs.head()
     return jobs
 
+   
 
 def modifying_type_resume(resumes):
     for i in range(len(resumes["degree_level"])):
@@ -317,10 +319,21 @@ def modifying_type_job(jobs):
         jobs["Skills"][i] = ast.literal_eval(jobs["Skills"][i])
     return jobs
 
-def insert_matched_resume(id_resume,job_index,degree_matching,major_matching,skills_semantic_matching,matching_score):
-    cursor = connection.cursor()
-    cursor.execute("INSERT INTO `matchedresume` VALUES ('NULL','%s','%s','%s','%s','%s','%s')",(id_resume,job_index, degree_matching, major_matching, skills_semantic_matching, matching_score))
-    connection.commit()
+
+
+def insert_matched_resume(id_resume, job_index, degree_matching, major_matching, skills_semantic_matching, matching_score):
+    try:
+        with connection.cursor() as cursor:
+            # Use parameterized query to prevent SQL injection
+            sql = "INSERT INTO `matchedresume` VALUES (NULL, %s, %s, %s, %s, %s, %s)"
+            cursor.execute(sql, (id_resume, job_index, degree_matching, major_matching, skills_semantic_matching, matching_score))
+            connection.commit()
+    except Exception as e:
+        # Handle the exception (log, raise, or return an error response)
+        print(f"Error inserting matched resume: {str(e)}")
+ 
+
+    
 
 
 @recruiter.route("/matching", methods=['GET'])
@@ -330,7 +343,7 @@ def matching():
     # Extract and cleaning data 
     resumes = get_extracted_resumes()
     jobs = get_extracted_jobs()
-    # modifying string literal 
+    print("resumes are: ", resumes)
     resumes = modifying_type_resume(resumes)
     jobs = modifying_type_job(jobs)
     rules = Rules(labels, resumes, jobs)
@@ -357,34 +370,83 @@ skills_semantic_matching=skills_semantic_matching if skills_semantic_matching el
     return resumes_matched_json
 
 
+
 @recruiter.route("/top_resumes", methods=['GET'])
 def top_resumes():
-    result = []
-    cursor = connection.cursor()
-    query = """
-        SELECT
-            ecv.ID,
-            ecv.name,
-            ecv.email,
-            ecv.skills,
-            ecv.degree,
-            ecv.majors,
-            mr.job_index AS matched_job
-        FROM
-            extract_cv ecv
-        JOIN
-            matchedresume mr ON ecv.ID = mr.id_resume
-        ORDER BY
-            mr.matching_score DESC
-        LIMIT 3;
-    """
-    cursor.execute(query)
-    connection.close()
-    result = cursor.fetchall()
-    top_resumes_json = jsonable_encoder(result)
-    return top_resumes_json
+    try:
+        # Use 'with' statement to automatically close the connection
+        with connection.cursor() as cursor:
+            query = """
+                SELECT
+                    ecv.ID,
+                    ecv.name,
+                    ecv.email,
+                    ecv.skills,
+                    ecv.degree,
+                    ecv.majors,
+                    mr.job_index AS matched_job
+                FROM
+                    extract_cv ecv
+                JOIN
+                    matchedresume mr ON ecv.ID = mr.id_resume
+                ORDER BY
+                    mr.matching_score DESC
+                LIMIT 3;
+            """
+            
+            cursor.execute(query)
+            result = cursor.fetchall()
+
+        # Convert result to JSON
+        top_resumes_matched= pd.DataFrame(result ,columns=['ID', 'Name', 'Email', 'Skills', 'Degree_level', 'Majors', 'JOb_id'] )
+        top_resumes_json = transform_dataframe_to_json(top_resumes_matched)
+
+        # Return the JSON response
+        return jsonable_encoder(top_resumes_json)
+
+    except Exception as e:
+        # Handle the exception (log, raise, or return an error response)
+        print(f"Error fetching top resumes: {str(e)}")
+        return jsonify({'error': 'Internal Server Error'}), 500
+
+      
+
+@recruiter.route("/extractcv", methods=['GET'])
+def extractcv():
+    jd = [] 
+    try:
+        with connection.cursor() as cursor:
+            sql = "SELECT * FROM extract_cv"
+            cursor.execute(sql)
+            result = cursor.fetchall()
+            
+    
+        resumes = pd.DataFrame(result , columns=['ID', 'name', 'email', 'skills', 'degree_level', 'majors'])
+        resumes_json = transform_dataframe_to_json( resumes )
+        resume_list = jsonable_encoder(resumes_json)
+        return  resume_list 
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
+
+@recruiter.route("/extractJob", methods=['GET'])
+def getJob():
+    jd = [] 
+    try:
+        with connection.cursor() as cursor:
+            sql = "SELECT * FROM jobs"
+            cursor.execute(sql)
+            result = cursor.fetchall()
+            
+        resumes = pd.DataFrame(result , columns=['job_id', 'job_title', 'job_description', 'job_salary', 'job-location', 'timestamp'])
+        resumes_json = transform_dataframe_to_json( resumes )
+        resume_list = jsonable_encoder(resumes_json)
+        return  resume_list 
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
+        
 # ------------------------------- AI INterview Section starts ----------------
 # ------------------------------------------------------------------------------
 # //////////////////////////////// Job Post /////////////////////

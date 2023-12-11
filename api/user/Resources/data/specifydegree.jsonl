@@ -1,0 +1,118 @@
+{"label": "DEGREE|Bachelors-in-Computer-Science", "pattern": [{"LOWER": "bachelor's in computer science"}]}
+{"label": "DEGREE|Bachelors-in-Computer-Science", "pattern": [{"LOWER": "bachelors in computer science"}]}
+{"label": "DEGREE|Bachelors-in-Computer-Science", "pattern": [{"LOWER": "bachelor's degree in computer science"}]}
+{"label": "DEGREE|Bachelors-in-Computer-Science", "pattern": [{"LOWER": "bachelors degree in computer science"}]}
+{"label": "DEGREE|Bachelors-in-Computer-Science", "pattern": [{"LOWER": "bachelor of science in computer science"}]}
+{"label": "DEGREE|Bachelors-in-Computer-Science", "pattern": [{"LOWER": "bs in computer science"}]}
+{"label": "DEGREE|Bachelors-in-Computer-Science", "pattern": [{"LOWER": "bs cs"}]}
+{"label": "DEGREE|Bachelors-in-Computer-Science", "pattern": [{"LOWER": "b.sc in computer science"}]}
+{"label": "DEGREE|Bachelors-in-Computer-Science", "pattern": [{"LOWER": "undergraduate degree in computer science"}]}
+{"label": "DEGREE|Bachelors-in-Computer-Science", "pattern": [{"LOWER": "computer science bachelor's program"}]}
+{"label": "DEGREE|Bachelors-in-Computer-Science", "pattern": [{"LOWER": "computer science undergraduate degree"}]}
+{"label": "DEGREE|Master-in-Computer-Science", "pattern": [{"LOWER": "master's in computer science"}]}
+{"label": "DEGREE|Master-in-Computer-Science", "pattern": [{"LOWER": "master in computer science"}]}
+{"label": "DEGREE|Master-in-Computer-Science", "pattern": [{"LOWER": "master's degree in computer science"}]}
+{"label": "DEGREE|Master-in-Computer-Science", "pattern": [{"LOWER": "master degree in computer science"}]}
+{"label": "DEGREE|Master-in-Computer-Science", "pattern": [{"LOWER": "master of science in computer science"}]}
+{"label": "DEGREE|Master-in-Computer-Science", "pattern": [{"LOWER": "ms in computer science"}]}
+{"label": "DEGREE|Master-in-Computer-Science", "pattern": [{"LOWER": "m.sc in computer science"}]}
+{"label": "DEGREE|Master-in-Computer-Science", "pattern": [{"LOWER": "graduate degree in computer science"}]}
+{"label": "DEGREE|Master-in-Computer-Science", "pattern": [{"LOWER": "ms cs"}]}
+{"label": "DEGREE|Master-in-Computer-Science", "pattern": [{"LOWER": "computer science master's program"}]}
+{"label": "DEGREE|Master-in-Computer-Science", "pattern": [{"LOWER": "computer science graduate degree"}]}
+{"label": "DEGREE|Bachelors-in-Information-Technology", "pattern": [{"LOWER": "bachelors in information technology"}]}
+{"label": "DEGREE|Bachelors-in-Information-Technology", "pattern": [{"LOWER": "bachelor's in information technology"}]}
+{"label": "DEGREE|Bachelors-in-Information-Technology", "pattern": [{"LOWER": "bachelor in information technology"}]}
+{"label": "DEGREE|Bachelors-in-Information-Technology", "pattern": [{"LOWER": "bachelor's degree in information technology"}]}
+{"label": "DEGREE|Bachelors-in-Information-Technology", "pattern": [{"LOWER": "bachelor degree in information technology"}]}
+{"label": "DEGREE|Bachelors-in-Information-Technology", "pattern": [{"LOWER": "bachelor of science in information technology"}]}
+{"label": "DEGREE|Bachelors-in-Information-Technology", "pattern": [{"LOWER": "bs it"}]}
+{"label": "DEGREE|Bachelors-in-Information-Technology", "pattern": [{"LOWER": "b.sc in information technology"}]}
+{"label": "DEGREE|Bachelors-in-Information-Technology", "pattern": [{"LOWER": "undergraduate degree in information technology"}]}
+{"label": "DEGREE|Bachelors-in-Information-Technology", "pattern": [{"LOWER": "information technology bachelor's program"}]}
+{"label": "DEGREE|Bachelors-in-Information-Technology", "pattern": [{"LOWER": "information technology undergraduate degree"}]}
+{"label": "DEGREE|Master-in-Information-Technology", "pattern": [{"LOWER": "master's in information technology"}]}
+{"label": "DEGREE|Master-in-Information-Technology", "pattern": [{"LOWER": "master in information technology"}]}
+{"label": "DEGREE|Master-in-Information-Technology", "pattern": [{"LOWER": "master's degree in information technology"}]}
+{"label": "DEGREE|Master-in-Information-Technology", "pattern": [{"LOWER": "master degree in information technology"}]}
+{"label": "DEGREE|Master-in-Information-Technology", "pattern": [{"LOWER": "master of science in information technology"}]}
+{"label": "DEGREE|Master-in-Information-Technology", "pattern": [{"LOWER": "ms in information technology"}]}
+{"label": "DEGREE|Master-in-Information-Technology", "pattern": [{"LOWER": "m.sc in information technology"}]}
+{"label": "DEGREE|Master-in-Information-Technology", "pattern": [{"LOWER": "graduate degree in information technology"}]}
+{"label": "DEGREE|Master-in-Information-Technology", "pattern": [{"LOWER": "information technology master's program"}]}
+{"label": "DEGREE|Master-in-Information-Technology", "pattern": [{"LOWER": "information technology graduate degree"}]}
+{"label": "DEGREE|Master-in-Information-Technology", "pattern": [{"LOWER": "ms it"}]}
+{"label": "DEGREE|Bachelors-in-Mathematics", "pattern": [{"LOWER": "bachelors in mathematics"}]}
+{"label": "DEGREE|Bachelors-in-Mathematics", "pattern": [{"LOWER": "bachelor's in mathematics"}]}
+{"label": "DEGREE|Bachelors-in-Mathematics", "pattern": [{"LOWER": "bachelor in mathematics"}]}
+{"label": "DEGREE|Bachelors-in-Mathematics", "pattern": [{"LOWER": "bachelor's degree in mathematics"}]}
+{"label": "DEGREE|Bachelors-in-Mathematics", "pattern": [{"LOWER": "bachelor degree in mathematics"}]}
+{"label": "DEGREE|Bachelors-in-Mathematics", "pattern": [{"LOWER": "bachelor of science in mathematics"}]}
+{"label": "DEGREE|Bachelors-in-Mathematics", "pattern": [{"LOWER": "bs in mathematics"}]}
+{"label": "DEGREE|Bachelors-in-Mathematics", "pattern": [{"LOWER": "mathematics"}]}
+{"label": "DEGREE|Bachelors-in-Mathematics", "pattern": [{"LOWER": "b.sc in mathematics"}]}
+{"label": "DEGREE|Bachelors-in-Mathematics", "pattern": [{"LOWER": "undergraduate degree in mathematics"}]}
+{"label": "DEGREE|Bachelors-in-Mathematics", "pattern": [{"LOWER": "mathematics bachelor's program"}]}
+{"label": "DEGREE|Bachelors-in-Mathematics", "pattern": [{"LOWER": "mathematics undergraduate degree"}]}
+{"label": "DEGREE|Master-in-Mathematics", "pattern": [{"LOWER": "master's in mathematics"}]}
+{"label": "DEGREE|Master-in-Mathematics", "pattern": [{"LOWER": "master in mathematics"}]}
+{"label": "DEGREE|Master-in-Mathematics", "pattern": [{"LOWER": "master's degree in mathematics"}]}
+{"label": "DEGREE|Master-in-Mathematics", "pattern": [{"LOWER": "master degree in mathematics"}]}
+{"label": "DEGREE|Master-in-Mathematics", "pattern": [{"LOWER": "master of science in mathematics"}]}
+{"label": "DEGREE|Master-in-Mathematics", "pattern": [{"LOWER": "ms in mathematics"}]}
+{"label": "DEGREE|Master-in-Mathematics", "pattern": [{"LOWER": "ms mathematics"}]}
+{"label": "DEGREE|Master-in-Mathematics", "pattern": [{"LOWER": "m.sc in mathematics"}]}
+{"label": "DEGREE|Master-in-Mathematics", "pattern": [{"LOWER": "graduate degree in mathematics"}]}
+{"label": "DEGREE|Master-in-Mathematics", "pattern": [{"LOWER": "mathematics master's program"}]}
+{"label": "DEGREE|Master-in-Mathematics", "pattern": [{"LOWER": "mathematics graduate degree"}]}
+{"label": "DEGREE|Bachelors-in-Civil-Engineering", "pattern": [{"LOWER": "bachelors in civil engineering"}]}
+{"label": "DEGREE|Bachelors-in-Chemical-Engineering", "pattern": [{"LOWER": "bachelors in chemical engineering"}]}
+{"label": "DEGREE|Master-of-Science-in-Mechanical-Engineering", "pattern": [{"LOWER": "master of science in mechanical engineering"}]}
+{"label": "DEGREE|Master-of-Science-in-Civil-Engineering", "pattern": [{"LOWER": "master of science in civil engineering"}]}
+{"label": "DEGREE|Master-of-Science-in-Chemical-Engineering", "pattern": [{"LOWER": "master of science in chemical engineering"}]}
+{"label": "DEGREE|Bachelors-in-English-Literature", "pattern": [{"LOWER": "bachelors in english literature"}]}
+{"label": "DEGREE|Bachelors-in-History", "pattern": [{"LOWER": "bachelors in history"}]}
+{"label": "DEGREE|Bachelors-in-Psychology", "pattern": [{"LOWER": "bachelors in psychology"}]}
+{"label": "DEGREE|Master-of-Arts-in-English-Literature", "pattern": [{"LOWER": "master of arts in english literature"}]}
+{"label": "DEGREE|Master-of-Arts-in-History", "pattern": [{"LOWER": "master of arts in history"}]}
+{"label": "DEGREE|Master-of-Arts-in-Psychology", "pattern": [{"LOWER": "master of arts in psychology"}]}
+{"label": "DEGREE|Bachelors-in-Nursing", "pattern": [{"LOWER": "bachelors in nursing"}]}
+{"label": "DEGREE|Bachelors-in-Medicine", "pattern": [{"LOWER": "bachelors in medicine"}]}
+{"label": "DEGREE|Bachelors-in-Pharmacy", "pattern": [{"LOWER": "bachelors in pharmacy"}]}
+{"label": "DEGREE|Doctor-of-Medicine", "pattern": [{"LOWER": "doctor of medicine"}]}
+{"label": "DEGREE|Doctor-of-Pharmacy", "pattern": [{"LOWER": "doctor of pharmacy"}]}
+{"label": "DEGREE|Bachelors-in-Computer-Science", "pattern": [{"LOWER": "bachelors in computer science"}]}
+{"label": "DEGREE|Bachelors-in-Information-Technology", "pattern": [{"LOWER": "bachelors in information technology"}]}
+{"label": "DEGREE|Bachelors-in-Electrical-Engineering", "pattern": [{"LOWER": "bachelors in electrical engineering"}]}
+{"label": "DEGREE|Master-of-Science-in-Computer-Science", "pattern": [{"LOWER": "master of science in computer science"}]}
+{"label": "DEGREE|Master-of-Science-in-Information-Technology", "pattern": [{"LOWER": "master of science in information technology"}]}
+{"label": "DEGREE|Master-of-Science-in-Electrical-Engineering", "pattern": [{"LOWER": "master of science in electrical engineering"}]}
+{"label": "DEGREE|Ph.D.-in-Computer-Science", "pattern": [{"LOWER": "phd in computer science"}]}
+{"label": "DEGREE|Ph.D.-in-Information-Technology", "pattern": [{"LOWER": "phd in information technology"}]}
+{"label": "DEGREE|Ph.D.-in-Electrical-Engineering", "pattern": [{"LOWER": "phd in electrical engineering"}]}
+{"label": "DEGREE|Bachelors-in-Business-Administration", "pattern": [{"LOWER": "bachelors in business administration"}]}
+{"label": "DEGREE|Bachelors-in-Marketing", "pattern": [{"LOWER": "bachelors in marketing"}]}
+{"label": "DEGREE|Bachelors-in-Finance", "pattern": [{"LOWER": "bachelors in finance"}]}
+{"label": "DEGREE|Master-of-Business-Administration", "pattern": [{"LOWER": "master of business administration"}]}
+{"label": "DEGREE|Master-of-Marketing", "pattern": [{"LOWER": "master of marketing"}]}
+{"label": "DEGREE|Master-of-Finance", "pattern": [{"LOWER": "master of finance"}]}
+{"label": "DEGREE|Bachelors-in-Environmental-Science", "pattern": [{"LOWER": "bachelors in environmental science"}]}
+{"label": "DEGREE|Bachelors-in-Geology", "pattern": [{"LOWER": "bachelors in geology"}]}
+{"label": "DEGREE|Bachelors-in-Biology", "pattern": [{"LOWER": "bachelors in biology"}]}
+{"label": "DEGREE|Master-of-Environmental-Science", "pattern": [{"LOWER": "master of environmental science"}]}
+{"label": "DEGREE|Master-of-Geology", "pattern": [{"LOWER": "master of geology"}]}
+{"label": "DEGREE|Master-of-Biology", "pattern": [{"LOWER": "master of biology"}]}
+{"label": "DEGREE|Bachelors-in-Mechanical-Engineering", "pattern": [{"LOWER": "bachelors in mechanical engineering"}]}
+{"label": "DEGREE|Bachelors-in-Civil-Engineering", "pattern": [{"LOWER": "bachelors in civil engineering"}]}
+{"label": "DEGREE|Bachelors-in-Aerospace-Engineering", "pattern": [{"LOWER": "bachelors in aerospace engineering"}]}
+{"label": "DEGREE|Master-of-Mechanical-Engineering", "pattern": [{"LOWER": "master of mechanical engineering"}]}
+{"label": "DEGREE|Master-of-Civil-Engineering", "pattern": [{"LOWER": "master of civil engineering"}]}
+{"label": "DEGREE|Master-of-Aerospace-Engineering", "pattern": [{"LOWER": "master of aerospace engineering"}]}
+{"label": "DEGREE|Bachelors-in-Economics", "pattern": [{"LOWER": "bachelors in economics"}]}
+{"label": "DEGREE|Bachelors-in-Political-Science", "pattern": [{"LOWER": "bachelors in political science"}]}
+{"label": "DEGREE|Bachelors-in-Psychology", "pattern": [{"LOWER": "bachelors in psychology"}]}
+{"label": "DEGREE|Master-of-Economics", "pattern": [{"LOWER": "master of economics"}]}
+{"label": "DEGREE|Master-of-Political-Science", "pattern": [{"LOWER": "master of political science"}]}
+{"label": "DEGREE|Master-of-Psychology", "pattern": [{"LOWER": "master of psychology"}]}
+
+
