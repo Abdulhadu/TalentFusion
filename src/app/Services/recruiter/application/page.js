@@ -100,7 +100,7 @@ const Page = () => {
               />
             </Stack>
             <br />
-            <Button onClick={handleSubmit}>Submit</Button>
+            <Button variant="contained" color="primary" onClick={handleSubmit}>Submit</Button>
           </>
         </BaseCard>
       </Grid>

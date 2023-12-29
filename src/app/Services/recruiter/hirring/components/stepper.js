@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import {
-  Typography,
+  Stack,
   Stepper,
   Step,
   StepLabel,
@@ -68,30 +68,34 @@ const LinearStepper = () => {
         {activeStep === steps.length ? (
           <Grid item xs={12} lg={12}>
             <BaseCard>
-              <ThankYou />
+            <ThankYou text="Email is Sent Successfully to all the selected Candidates"/>
             </BaseCard>
           </Grid>
         ) : (
           <Grid item xs={12} lg={12}>
-            <BaseCard
-              style={{ display: "flex", justifyContent: "space-between" }}
-            >
-              <Button
-                variant="contained"
-                color="secondary"
-                onClick={handleBack}
-                disabled={activeStep === 0}
+            <BaseCard>
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
               >
-                Back
-              </Button>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleNext}
-                style={{ marginLeft: "700px" }}
-              >
-                {activeStep === steps.length - 1 ? "Finish" : "Next"}
-              </Button>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  onClick={handleBack}
+                  disabled={activeStep === 0}
+                >
+                  Back
+                </Button>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleNext}
+                  style={{ marginLeft: "700px" }}
+                >
+                  {activeStep === steps.length - 1 ? "Finish" : "Next"}
+                </Button>
+              </Stack>
             </BaseCard>
           </Grid>
         )}

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState , useEffect} from "react";
 import { useTheme } from "@mui/material/styles";
 import Link from "next/link";
 import {
@@ -13,6 +13,8 @@ import {
   List,
   ListItemText,
 } from "@mui/material";
+import { useAuth } from "../../context/Authcontext";
+import { jwtDecode } from "jwt-decode";
 
 import { Stack } from "@mui/system";
 import {
@@ -25,6 +27,23 @@ import {
 
 const Profile = () => {
   const [anchorEl2, setAnchorEl2] = useState(null);
+  const { authenticated, logout } = useAuth();
+  const [companyName, setCompanyName] = useState("Guest");
+
+  useEffect(() => {
+    const fetchCompanyName = () => {
+      const token = localStorage.getItem('jwtToken');
+      if (token && authenticated) {
+        const decodedToken = jwtDecode(token) as any;
+        setCompanyName(decodedToken?.Company_name || "Guest");
+      } else {
+        setCompanyName("Guest");
+      }
+    };
+
+    fetchCompanyName();
+  }, [authenticated]);
+  
   const handleClick2 = (event: any) => {
     setAnchorEl2(event.currentTarget);
   };
@@ -40,33 +59,7 @@ const Profile = () => {
   const success = theme.palette.success.main;
   const successlight = theme.palette.success.light;
 
-  /*profile data*/
-  const profiledata = [
-    {
-      href: "/",
-      title: "My Profile",
-      subtitle: "Account Settings",
-      icon: <IconCurrencyDollar width="20" height="20" />,
-      color: primary,
-      lightcolor: primarylight,
-    },
-    {
-      href: "/",
-      title: "My Inbox",
-      subtitle: "Messages & Emails",
-      icon: <IconShield width="20" height="20" />,
-      color: success,
-      lightcolor: successlight,
-    },
-    {
-      href: "/",
-      title: "My Tasks",
-      subtitle: "To-do and Daily Tasks",
-      icon: <IconCreditCard width="20" height="20" />,
-      color: error,
-      lightcolor: errorlight,
-    },
-  ];
+  
 
   return (
     <Box>
@@ -115,7 +108,7 @@ const Profile = () => {
               ml: 1,
             }}
           >
-            Julia
+           {companyName}
           </Typography>
           <IconChevronDown width="20" height="20" />
         </Box>
@@ -153,15 +146,12 @@ const Profile = () => {
             <ListItemButton component="a" href="#">
               <ListItemText primary="Change Password" />
             </ListItemButton>
-            <ListItemButton component="a" href="#">
-              <ListItemText primary="My Settings" />
-            </ListItemButton>
           </List>
 
         </Box>
         <Divider />
         <Box mt={2}>
-          <Button fullWidth variant="contained" color="primary">
+          <Button fullWidth variant="contained" color="primary" onClick={logout}>
             Logout
           </Button>
         </Box>

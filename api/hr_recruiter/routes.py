@@ -1,7 +1,5 @@
-import datetime
-from flask import (
-    Blueprint, render_template, request
-)
+from datetime import datetime
+from flask import Blueprint, current_app, render_template, request, redirect, url_for, flash
 from pyresparser import ResumeParser
 import numpy as np
 from numpy.core.numeric import NaN
@@ -14,7 +12,7 @@ import time
 import cv2
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import LabelEncoder
-from flask import Flask , render_template , request , url_for , jsonify , Response
+from flask import Flask , render_template , request , url_for , jsonify , Response, make_response
 from werkzeug.utils import redirect, secure_filename
 from flask_mail import Mail , Message
 from flask_mysqldb import MySQL
@@ -33,13 +31,18 @@ import json
 from api.hr_recruiter.services.JobInfoExtraction import JobInfoExtraction
 from api.hr_recruiter.services.cvinfoExtraction import cvinfoExtraction
 from api.hr_recruiter.services.Rules import Rules
-from api.hr_recruiter.source.db_helpers.db_connection import database
 from api.hr_recruiter.source.schemas.matched_resume import ResumeMatchedModel
 from api.hr_recruiter.source.schemas.jobextracted import JobExtractedModel
 import ast
 import os
 import sys
 import fitz
+import secrets
+import jwt
+from datetime import datetime, timedelta
+from pymysqlpool import ConnectionPool
+
+
 
 # Access the environment variables stored in .env file
 MYSQL_USER = config('mysql_user')
@@ -52,16 +55,11 @@ MAIL_PWD = config('mail_pwd')
 # For logging into the interview portal
 COMPANY_MAIL = config('company_mail')
 COMPANY_PSWD = config('company_pswd')
+SECRET_KEY = "python_jwt"
+
 
 # Create a Flask app
 app = Flask(__name__)
-CORS(app) 
-# App configurations
-# app.config['MYSQL_HOST'] = 'localhost'
-# app.config['MYSQL_USER'] = 'root'
-# app.config['MYSQL_PASSWORD'] = ''
-# app.config['MYSQL_DB'] = 'telentfussion' 
-# user_db = MySQL(app)
 
 db_config = {
     'host': 'localhost',
@@ -71,23 +69,23 @@ db_config = {
 }
 
 # Create a connection to the MySQL database
-connection = pymysql.connect(**db_config)
+pool = ConnectionPool(size=5, name='mypool', **db_config)
 print("MySQL connection established successfully")
 
-
-mail = Mail(app)              
-app.config['MAIL_SERVER']='smtp.gmail.com'
-app.config['MAIL_PORT'] = 465
-app.config['MAIL_USERNAME'] = MAIL_USERNAME
-app.config['MAIL_PASSWORD'] = MAIL_PWD
-app.config['MAIL_USE_TLS'] = False
-app.config['MAIL_USE_SSL'] = True
-app.config['MAIL_ASCII_ATTACHMENTS'] = True
-mail = Mail(app)
 
 
 recruiter = Blueprint('recruiter', __name__, url_prefix='/recruiter')
 
+ 
+# Function to get a connection from the pool
+def get_connection():
+    return pool.get_connection()
+
+# Close the pool when the application is closed
+@app.teardown_appcontext
+def close_pool(error):
+    pool.close_all()
+# ////////////////////////// Routes //////////////////////////////
 # Initial sliding page
 @recruiter.route('/')
 def home():
@@ -150,11 +148,11 @@ def submitcv():
    
             resume.head()
            
-            if connection:
-                cursor = connection.cursor()
+            if get_connection():
+                cursor =  get_connection().cursor()
 
                 cursor.execute("INSERT INTO `extract_cv` VALUES (NULL,%s,%s,%s,%s,%s)",(resume_data['name'],resume_data['email'], str(skills), str(minimum_degree_level), str(acceptable_majors)))
-                connection.commit()
+                get_connection().commit()
 
                 return jsonify({'message': 'Your application are posted successfully'}), 201
             else:
@@ -174,10 +172,12 @@ def transform_dataframe_to_json(dataframe):
 
     return json_data
 
+
+
 @recruiter.route("/extraction", methods=['GET'])
 def extraction():
     try:
-        with connection.cursor() as cursor:
+        with get_connection().cursor() as cursor:
            sql = "SELECT * FROM jobs"
            cursor.execute(sql)
            jd = cursor.fetchall()
@@ -217,12 +217,12 @@ def extraction():
         acceptable_majors_str = ', '.join(map(str, acceptable_majors))
         skills_str = ', '.join(map(str, skills))
 
-        if connection:
-            cursor = connection.cursor()
+        if get_connection():
+            cursor =  get_connection().cursor()
 
             # Raw SQL query to insert a new job record
             cursor.execute("INSERT INTO extractjobs VALUES (NULL, %s, %s, %s, %s, %s)", (job_title, job_description, minimum_degree_level, acceptable_majors_str, skills_str))
-            connection.commit()
+            get_connection().commit()
 
             jobs_json = transform_dataframe_to_json(jobs)
             return jobs_json
@@ -247,7 +247,7 @@ def transform_dataframe_to_json(dataframe):
 def get_extracted_resumes():
     jd = [] 
     try:
-        with connection.cursor() as cursor:
+        with get_connection().cursor() as cursor:
             sql = "SELECT * FROM extract_cv"
             cursor.execute(sql)
             jd = cursor.fetchall()
@@ -283,7 +283,7 @@ def get_extracted_resumes():
 def get_extracted_jobs():
     jd = [] 
     try:
-        with connection.cursor() as cursor:
+        with get_connection().cursor() as cursor:
             sql = "SELECT * FROM extractjobs"
             cursor.execute(sql)
             jd = cursor.fetchall()
@@ -320,18 +320,28 @@ def modifying_type_job(jobs):
     return jobs
 
 
-
 def insert_matched_resume(id_resume, job_index, degree_matching, major_matching, skills_semantic_matching, matching_score):
     try:
-        with connection.cursor() as cursor:
-            # Use parameterized query to prevent SQL injection
-            sql = "INSERT INTO `matchedresume` VALUES (NULL, %s, %s, %s, %s, %s, %s)"
-            cursor.execute(sql, (id_resume, job_index, degree_matching, major_matching, skills_semantic_matching, matching_score))
-            connection.commit()
+        with get_connection().cursor() as cursor:
+            # Check if records exist for the given id_resume and job_index
+            check_sql = "SELECT COUNT(*) FROM `matchedresume` WHERE id_resume = %s AND job_index = %s"
+            cursor.execute(check_sql, (id_resume, job_index))
+            result = cursor.fetchone()
+            record_count = result[0]
+
+            if record_count > 0:
+                # Delete existing records for the given id_resume and job_index
+                delete_sql = "DELETE FROM `matchedresume` WHERE id_resume = %s AND job_index = %s"
+                cursor.execute(delete_sql, (id_resume, job_index))
+
+            # Insert the new record
+            insert_sql = "INSERT INTO `matchedresume` VALUES (NULL, %s, %s, %s, %s, %s, %s)"
+            cursor.execute(insert_sql, (id_resume, job_index, degree_matching, major_matching, skills_semantic_matching, matching_score))
+
+            get_connection().commit()
     except Exception as e:
         # Handle the exception (log, raise, or return an error response)
         print(f"Error inserting matched resume: {str(e)}")
- 
 
     
 
@@ -369,13 +379,21 @@ skills_semantic_matching=skills_semantic_matching if skills_semantic_matching el
    
     return resumes_matched_json
 
-
-
 @recruiter.route("/top_resumes", methods=['GET'])
 def top_resumes():
     try:
-        # Use 'with' statement to automatically close the connection
-        with connection.cursor() as cursor:
+        with get_connection().cursor() as cursor:
+            # Check if records exist in shortlist_candidates
+            check_records_sql = "SELECT COUNT(*) FROM `shortlist_candidates`"
+            cursor.execute(check_records_sql)
+            records_count = cursor.fetchone()[0]
+
+            if records_count > 0:
+                # Records exist, delete all records
+                delete_all_sql = "DELETE FROM `shortlist_candidates`"
+                cursor.execute(delete_all_sql)
+
+            # Fetch top resumes
             query = """
                 SELECT
                     ecv.ID,
@@ -384,38 +402,48 @@ def top_resumes():
                     ecv.skills,
                     ecv.degree,
                     ecv.majors,
-                    mr.job_index AS matched_job
+                    ej.job_title AS matched_job_title
                 FROM
                     extract_cv ecv
                 JOIN
                     matchedresume mr ON ecv.ID = mr.id_resume
+                JOIN
+                    extractjobs ej ON mr.job_index = ej.ID
                 ORDER BY
                     mr.matching_score DESC
                 LIMIT 3;
             """
-            
             cursor.execute(query)
             result = cursor.fetchall()
 
-        # Convert result to JSON
-        top_resumes_matched= pd.DataFrame(result ,columns=['ID', 'Name', 'Email', 'Skills', 'Degree_level', 'Majors', 'JOb_id'] )
-        top_resumes_json = transform_dataframe_to_json(top_resumes_matched)
+            # Insert new records into shortlist_candidates
+            if result:
+                insert_sql = """
+                INSERT INTO `shortlist_candidates` (name, email, skills, degree, majors, job_title)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                """
+                for row in result:
+                    cursor.execute(insert_sql, (str(row[1]), str(row[2]), str(row[3]), str(row[4]), str(row[5]), str(row[6])))
 
-        # Return the JSON response
-        return jsonable_encoder(top_resumes_json)
+            get_connection().commit()
+
+            top_resumes_matched = pd.DataFrame(result, columns=['ID', 'Name', 'Email', 'Skills', 'Degree_level', 'Majors', 'JOb_id'])
+            top_resumes_json = transform_dataframe_to_json(top_resumes_matched)
+
+            # Return the JSON response
+            return jsonable_encoder(top_resumes_json)
 
     except Exception as e:
         # Handle the exception (log, raise, or return an error response)
         print(f"Error fetching top resumes: {str(e)}")
         return jsonify({'error': 'Internal Server Error'}), 500
-
-      
+    
 
 @recruiter.route("/extractcv", methods=['GET'])
 def extractcv():
     jd = [] 
     try:
-        with connection.cursor() as cursor:
+        with get_connection().cursor() as cursor:
             sql = "SELECT * FROM extract_cv"
             cursor.execute(sql)
             result = cursor.fetchall()
@@ -434,7 +462,7 @@ def extractcv():
 def getJob():
     jd = [] 
     try:
-        with connection.cursor() as cursor:
+        with get_connection().cursor() as cursor:
             sql = "SELECT * FROM jobs"
             cursor.execute(sql)
             result = cursor.fetchall()
@@ -445,10 +473,11 @@ def getJob():
         return  resume_list 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+        
     
         
-# ------------------------------- AI INterview Section starts ----------------
-# ------------------------------------------------------------------------------
+
 # //////////////////////////////// Job Post /////////////////////
 @recruiter.route('/post_job', methods=['POST'])
 def post_job():
@@ -465,12 +494,12 @@ def post_job():
         formatted_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
         # Ensure a valid database connection
-        if connection:
-            cursor = connection.cursor()
+        if get_connection():
+            cursor =  get_connection().cursor()
 
             # Raw SQL query to insert a new job record
             cursor.execute("INSERT INTO jobs VALUES (NULL, %s, %s, %s, %s, %s)", (job_title, description, salary, location, formatted_date))
-            connection.commit()
+            get_connection().commit()
 
             # Return success response
             return jsonify({'message': 'Job posted successfully'}), 201
@@ -482,114 +511,250 @@ def post_job():
         return jsonify({'error': str(e)}), 500
     
     
+# ------------------------------- AI INterview Section starts ----------------
+# -----------------------------------------------------------------------------
     
+# Get Shotlisted candidates 
+@recruiter.route('/shortlisted_candidates' , methods=['GET'])
+def get_shortlisted_cadidates():
+    jd = [] 
+    try:
+        with get_connection().cursor() as cursor:
+            sql = "SELECT * FROM shortlist_candidates"
+            cursor.execute(sql)
+            result = cursor.fetchall()
+            
+        shortlist_candidates = pd.DataFrame(result , columns=['ID', 'name', 'email', 'skills', 'degree','majors','job_title'])
+        shortlist_json = transform_dataframe_to_json( shortlist_candidates )
+        shortlist_list = jsonable_encoder(shortlist_json)
+        return  shortlist_list 
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+        
+        
     
-# Interviewee signup 
+# Get Company Details 
+@recruiter.route('/get_company' , methods=['GET'])
+def get_company():
+    jd = [] 
+    try:
+        with get_connection().cursor() as cursor:
+            sql = "SELECT * FROM company"
+            cursor.execute(sql)
+            result = cursor.fetchall()
+            
+        company_profile = pd.DataFrame(result , columns=['ID', 'name', 'email' , 'password'])
+        company_json = transform_dataframe_to_json( company_profile )
+        company_list = jsonable_encoder(company_json)
+        return  company_list 
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+        
+        
+# Comapany signup 
 @recruiter.route('/signup' , methods=['POST' , 'GET'])
 def interviewee():
-    if request.method == 'POST' and 'username' in request.form and 'usermail' in request.form and 'userpassword' in request.form:
-        username = request.form['username']
-        usermail = request.form['usermail']
-        userpassword = request.form['userpassword']
+    
+    if request.method == 'POST' and 'name' in request.json and 'email' in request.json and 'password' in request.json:
+        data = request.json 
+        username = data.get('name')
+        usermail = data.get('email')
+        userpassword = data.get('password')
+        
+        try: 
+            with get_connection().cursor() as cursor:
 
-        cursor = connection.cursor()
+                cursor.execute("SELECT * FROM company WHERE company_name = %s AND company_email = %s", (username, usermail))
+                account = cursor.fetchone()
 
-        cursor.execute("SELECT * FROM candidates WHERE candidatename = %s AND email = %s", (username, usermail))
-        account = cursor.fetchone()
-
-        if account:
-            err = "Account Already Exists"
-            return render_template('index.html' , err = err)
-        elif not re.fullmatch(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', usermail):
-            err = "Invalid Email Address !!"
-            return render_template('index.html' , err = err)
-        elif not re.fullmatch(r'[A-Za-z0-9\s]+', username):
-            err = "Username must contain only characters and numbers !!"
-            return render_template('index.html' , err = err)
-        elif not username or not userpassword or not usermail:
-            err = "Please fill out all the fields"
-            return render_template('index.html' , err = err)
-        else:
-            cursor.execute("INSERT INTO candidates VALUES (NULL, % s, % s, % s)" , (username, usermail, userpassword,))
-            connection.commit()
-            reg = "You have successfully registered !!"
-            return render_template('FirstPage.html' , reg = reg)
+                if account:
+                    err = "Account Already Exists"
+                    return jsonify({'status': 'error', 'message': err })
+                elif not re.fullmatch(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', usermail):
+                    err = "Invalid Email Address !!"
+                    return jsonify({'status': 'error', 'message': err })
+                elif not re.fullmatch(r'[A-Za-z0-9\s]+', username):
+                    err = "Username must contain only characters and numbers !!"
+                    return jsonify({'status': 'error', 'message': err })
+                elif not username or not userpassword or not usermail:
+                    err = "Please fill out all the fields"
+                    return jsonify({'status': 'error', 'message': err })
+                else:
+                    cursor.execute("INSERT INTO company VALUES (NULL, % s, % s, % s)" , (username, usermail, userpassword,))
+                    get_connection().commit()
+                    return jsonify({'status': 'ok', 'message':'You have successfully registered !!' })
+        
+        except Exception as e:
+            print(f"Error: {e}")
+            return jsonify({'status': 'error', 'message':'Database Connection Failed' })
+            
     else:
-        return render_template('index.html')
+        return jsonify({'status': 'error', 'message': 'Invalid request'})
 
+
+
+# Company Sigin 
+@recruiter.route('/company_signin', methods=['POST'])
+def company_signin():
+    if request.method == 'POST':
+        data = request.json 
+        email = data.get('email')
+        password = data.get('password')
+
+        try: 
+            with get_connection().cursor() as cursor:
+                cursor.execute("SELECT * FROM company WHERE company_email = %s AND company_password = %s", (email, password))
+                company = cursor.fetchone()
+                
+            print("Company is:", company)
+            expiration_time = datetime.utcnow() + timedelta(hours=1)
+
+            if company:
+                json_data = {
+                    "Company_name": company[1],
+                    "Company_email": email, 
+                    "message": "JWT is awesome. You should try it!",
+                    "date": str(datetime.now()),
+                    "exp": expiration_time
+                }
+                
+                token = jwt.encode(payload=json_data, key=SECRET_KEY, algorithm="HS256")
+
+                # Include the token in the response JSON
+                response_data = {'status': 'ok', 'token': token}
+                response = jsonify(response_data)
+
+                return response
+            else:
+                response = jsonify({'status': 'error', 'message': 'Incorrect Credentials'})
+                return response
+        except Exception as e:
+            print(f"Error: {e}")
+            response = jsonify({'status': 'error', 'message': 'Internal Server Error'})
+            return response
+    else:
+        response = jsonify({'status': 'error', 'message': 'Invalid request method'})
+        return response
+    
 
 # Interviewer signin 
-@recruiter.route('/signin' , methods=['POST' , 'GET'])
+@recruiter.route('/signin' , methods=['POST'])
 def interviewer():
-    if request.method == 'POST' and 'company_mail' in request.form and 'password' in request.form:
-        company_mail = request.form['company_mail']
-        password = request.form['password']
+    if request.method == 'POST':
+        data = request.json 
+        email = data.get('email')
+        password = data.get('password')
+ 
+        try: 
+            with get_connection().cursor() as cursor:
+            
+                cursor.execute("SELECT * FROM candidate_interview WHERE email = %s AND password = %s", (email, password))
 
-        if company_mail == COMPANY_MAIL and password == COMPANY_PSWD:
-            return render_template('candidateSelect.html')
-        else:
-            return render_template("index.html" , err = "Incorrect Credentials")
+                candidate = cursor.fetchone()
+         
+            print("candidate is: ", candidate)
+
+            if candidate:
+                response = {'status': 'ok', 'message': 'Login successful'}
+               
+            else:
+                response = {'status': 'error', 'message': 'Incorrect Credentials'}
+
+            return jsonify(response)
+
+        except Exception as e:
+            print(f"Error: {e}")
+      
     else:
-        return render_template("index.html")
+        return jsonify({'status': 'error', 'message': 'Invalid request'})
+
 
 
 # personality trait prediction using Logistic Regression and parsing resume
 @recruiter.route('/prediction' , methods = ['GET' , 'POST'])
 def predict():
-  
     if request.method == 'POST':
-        fname = request.form['firstname'].capitalize()
-        lname = request.form['lastname'].capitalize()
-        age = int(request.form['age'])
-        gender = request.form['gender']
-        email = request.form['email']
-        file = request.files['resume']
-        path = './static/{}'.format(file.filename)
-        file.save(path)
-        val1 = float(request.form['openness'])
-        val2 = float(request.form['neuroticism'])
-        val3 = float(request.form['conscientiousness'])
-        val4 = float(request.form['agreeableness'])
-        val5 = float(request.form['extraversion'])
+        try:
+           fname = request.form['firstName'].capitalize()
+           lname = request.form['lastName'].capitalize()
+           age = int(request.form['age'])
+           gender = request.form['gender']
+           email = request.form['email']
+           file = request.files['resume']
+    
+           path = './static/{}'.format(file.filename)
+           file.save(path)
+           val1 = float(request.form['openness'])
+           val2 = float(request.form['neuroticism'])
+           val3 = float(request.form['conscientiousness'])
+           val4 = float(request.form['agreeableness'])
+           val5 = float(request.form['extraversion'])
+        
+           print("Details are : ",fname , lname ,age,gender,email, file ,path ,val1,val2 , val3 , val4 , val5 )
+ 
+        
+            # model prediction
+           df = pd.read_csv(r'static\trainDataset.csv')
+           le = LabelEncoder()
+           df['Gender'] = le.fit_transform(df['Gender'])
+           x_train = df.iloc[:, :-1].to_numpy()
+           y_train = df.iloc[:, -1].to_numpy(dtype=str)
+           lreg = LogisticRegression(multi_class='multinomial', solver='newton-cg', max_iter=1000)
+           lreg.fit(x_train, y_train)
 
-        # model prediction
-        df = pd.read_csv(r'static\trainDataset.csv')
-        le = LabelEncoder()
-        df['Gender'] = le.fit_transform(df['Gender'])
-        x_train = df.iloc[:, :-1].to_numpy()
-        y_train = df.iloc[:, -1].to_numpy(dtype=str)
-        lreg = LogisticRegression(multi_class='multinomial', solver='newton-cg', max_iter=1000)
-        lreg.fit(x_train, y_train)
+           if gender == 'male':
+               gender = 1
+           elif gender == 'female':
+               gender = 0
+           input_data = [gender, age, val1, val2, val3, val4, val5]
 
-        if gender == 'male':
-            gender = 1
-        elif gender == 'female':
-            gender = 0
-        input_data = [gender, age, val1, val2, val3, val4, val5]
+           pred = str(lreg.predict([input_data])[0]).capitalize()
 
-        pred = str(lreg.predict([input_data])[0]).capitalize()
+           # get data from the resume
+           data = ResumeParser(path).get_extracted_data()
 
-        # get data from the resume
-        data = ResumeParser(path).get_extracted_data()
+           result = {
+               'Name': fname + ' ' + lname,
+               'Age': age,
+               'Email': email,
+               'Mobile Number': data.get('mobile_number', None),
+               'Skills': str(data['skills']).replace("[", "").replace("]", "").replace("'", ""),
+               'Degree': data['degree'][0] if data.get('degree') and isinstance(data['degree'], list) else None,
+               'Designation': data['designation'][0] if data.get('designation') and isinstance(data['designation'], list) else None,
+                # 'Degree': data.get('degree', None)[0],
+                # 'Designation': data.get('designation', None)[0],
+                'Total Experience': data.get('total_experience'),
+                'Predicted Personality': pred
+             }
 
-        result = {
-            'Name': fname + ' ' + lname,
-            'Age': age,
-            'Email': email,
-            'Mobile Number': data.get('mobile_number', None),
-            'Skills': str(data['skills']).replace("[", "").replace("]", "").replace("'", ""),
-            'Degree': data['degree'][0] if data.get('degree') and isinstance(data['degree'], list) else None,
-            'Designation': data['designation'][0] if data.get('designation') and isinstance(data['designation'], list) else None,
-            # 'Degree': data.get('degree', None)[0],
-            # 'Designation': data.get('designation', None)[0],
-            'Total Experience': data.get('total_experience'),
-            'Predicted Personality': pred
-        }
-
-        with open('./static/result.json', 'w') as file:
-            json.dump(result, file)
-
-    return render_template('questionPage.html')
+           with open('./static/result.json', 'w') as file:
+               json.dump(result, file)
+           response_data = {
+                'success': True,
+                'message': 'Prediction successful',
+                # You can include additional data if needed
+                'data': {
+                    'Name': fname + ' ' + lname,
+                    'Age': age,
+                    'Email': email,
+                    'Mobile Number': data.get('mobile_number', None),
+                    'Skills': str(data['skills']).replace("[", "").replace("]", "").replace("'", ""),
+                    'Degree': data['degree'][0] if data.get('degree') and isinstance(data['degree'], list) else None,
+                    'Designation': data['designation'][0] if data.get('designation') and isinstance(data['designation'], list) else None,
+                    'Total Experience': data.get('total_experience'),
+                    'Predicted Personality': pred
+                }
+            }   
+           return jsonify(response_data)   
+        
+        except Exception as e:
+            error_message = str(e)
+            response_data = {'success': False, 'message': f'Error: {error_message}'}
+            return jsonify(response_data)
+        
+    return jsonify({'success': False, 'message': 'Invalid method'})
 
 
 # Record candidate's interview for face emotion and tone analysis
@@ -775,36 +940,91 @@ def info():
     return render_template('result.html' , output = output , responses = answers)
 
 
-# Send job confirmation mail to selected candidate
-@recruiter.route('/accept' , methods=['GET'])
+
+def create_candidate_interview_table():
+
+    cursor =  get_connection().cursor()
+
+    cursor.execute("SHOW TABLES LIKE 'candidate_interview'")
+    table_exists = cursor.fetchone()
+
+    if not table_exists:
+        # Create the table if it doesn't exist
+        create_table_query = """
+        CREATE TABLE candidate_interview (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(255),
+            email VARCHAR(255),
+            password VARCHAR(255)
+        )
+        """
+        cursor.execute(create_table_query)
+        get_connection().commit()
+
+    return get_connection()
+
+def signup_candidate(name, email):
+    # Generate a random password
+    password = secrets.token_urlsafe(10)
+
+    # Insert candidate details into the table
+    insert_query = f"INSERT INTO candidate_interview (name, email, password) VALUES ('{name}', '{email}', '{password}')"
+    cursor =  get_connection().cursor()
+    cursor.execute(insert_query)
+    get_connection().commit()
+
+    return email, password
+
+@recruiter.route('/accept', methods=['POST'])
 def accept():
+    data = request.get_json()
+    mail = current_app.extensions['mail']
+    name = data['name']
+    email = data['email']
+    position = data['job_id']
 
-    with open('./static/result.json' , 'r') as file:
-        output = json.load(file)
-    
-    name = output['Name']
-    email = output['Email']
-    position = "Software Development Engineer"
+    # Create the candidate_interview table and signup the candidate
+    connection = create_candidate_interview_table()
+    email, password = signup_candidate(name, email)
+ 
 
-    msg = Message(f'Job Confirmation Letter', sender = MAIL_USERNAME, recipients = [email])
-    msg.body = f"Dear {name},\n\n" + f"Thank you for taking the time to interview for the {position} position. We enjoyed getting to know you. We have completed all of our interviews.\n\n"+ f"I am pleased to inform you that we would like to offer you the {position} position. We believe your past experience and strong technical skills will be an asset to our organization. Your starting salary will be $15,000 per year with an anticipated start date of July 1.\n\n"+ f"The next step in the process is to set up meetings with our CEO, Rahul Dravid\n\n."+ f"Please respond to this email by June 23 to let us know if you would like to accept the SDE position.\n\n" + f"I look forward to hearing from you.\n\n"+ f"Sincerely,\n\n"+ f"Harsh Verma\nHuman Resources Director\nPhone: 555-555-1234\nEmail: feedbackmonitor123@gmail.com"
+    # Send job confirmation mail
+    msg = Message('Job Confirmation Letter', sender=MAIL_USERNAME, recipients=[email])
+    msg.body = f"Dear {name},\n\n" \
+               f"We hope this message finds you well. On behalf of the Talent Fusion team, I am pleased to inform you that you have been selected for the {position} position.\n\n" \
+               f"At Talent Fusion, we were impressed with your skills and experience, and we believe that you will be a valuable addition to our organization.\n\n" \
+               f"The next step in our hiring process is to invite you for a remote interview. Our outstanding hiring technology ensures a seamless and efficient interview process for candidates.\n\n" \
+               f"You can schedule your interview at any convenient time using the following details:\n" \
+               f"Interview Link: [Your Interview Link]\n" \
+               f"Username: {email}\n" \
+               f"Password: {password}\n\n" \
+               f"We look forward to discussing your qualifications further and getting to know you better during the interview. If you have any questions or concerns, feel free to reach out.\n\n" \
+               f"Thank you for considering a career with Talent Fusion. We are excited about the possibility of having you on our team.\n\n" \
+               f"Best Regards,\n" \
+               f"[Your Full Name]\n" \
+               f"[Your Position]\n" \
+               f"Talent Fusion\n" \
+               f"Email: [Your Email]\n" \
+               f"Phone: [Your Phone Number]"
     mail.send(msg)
 
-    return "success"
+    return jsonify({'email': email, 'password': password, 'message': 'success'})
+
 
 # Send mail to rejected candidate
-@recruiter.route('/reject' , methods=['GET'])
+@recruiter.route('/reject' , methods=['POST'])
 def reject():
-
-    with open('./static/result.json' , 'r') as file:
-        output = json.load(file)
     
-    name = output['Name']
-    email = output['Email']
-    position = "Software Development Engineer"
+    data = request.get_json()
+   
+    mail = current_app.extensions['mail']
+    
+    name = data['name']
+    email = data['email']
+    position = data['job_id']
 
     msg = Message(f'Your application to Smart Hire', sender = MAIL_USERNAME, recipients = [email])
-    msg.body = f"Dear {name},\n\n" + f"Thank you for taking the time to consider Smart Hire. We wanted to let you know that we have chosen to move forward with a different candidate for the {position} position.\n\n"+ f"Our team was impressed by your skills and accomplishments. We think you could be a good fit for other future openings and will reach out again if we find a good match.\n\n"+ f"We wish you all the best in your job search and future professional endeavors.\n\n"+ f"Regards,\n\n"+ f"Harsh Verma\nHuman Resources Director\nPhone: 555-555-1234\nEmail: feedbackmonitor123@gmail.com"
+    msg.body = f"Dear {name},\n\n" + f"Thank you for taking the time to consider Telent Fussion. We wanted to let you know that we have chosen to move forward with a different candidate for the {position} position.\n\n"+ f"Our team was impressed by your skills and accomplishments. We think you could be a good fit for other future openings and will reach out again if we find a good match.\n\n"+ f"We wish you all the best in your job search and future professional endeavors.\n\n"+ f"Regards,\n\n"+ f"Harsh Verma\nHuman Resources Director\nPhone: 555-555-1234\nEmail: feedbackmonitor123@gmail.com"
     mail.send(msg)
 
     return "success"

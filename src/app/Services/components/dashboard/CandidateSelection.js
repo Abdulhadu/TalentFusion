@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import React, { useState, useEffect } from "react";
 import ForwardToInboxIcon from "@mui/icons-material/ForwardToInbox";
 import CancelIcon from "@mui/icons-material/Cancel";
@@ -44,6 +44,43 @@ const CandidateSelection = () => {
     fetchData();
   }, []);
 
+  // Handle the button click for accepting or rejecting a candidate
+  const handleButtonClick = async (cv, action) => {
+    try {
+      // Define the API endpoint based on the action
+      const apiEndpoint =
+        action === "accept"
+          ? "http://127.0.0.1:5328/recruiter/accept"
+          : "http://127.0.0.1:5328/recruiter/reject";
+
+      // Prepare the data to be sent in the request
+      const requestData = {
+        id: cv.ID,
+        name: cv.Name,
+        email: cv.Email,
+        job_id: cv.JOb_id,
+      };
+
+      // Send the request
+      const response = await fetch(apiEndpoint, {
+        method: "POST", // or "PUT" or "DELETE" depending on your API
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestData),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      // Update the UI or handle success as needed
+      console.log(`${action} request successful for candidate: ${cv.Name}`);
+    } catch (error) {
+      console.error(`Error handling ${action} request:`, error.message);
+    }
+  };
+
   if (loading) {
     return (
       <Box sx={{ width: "100%", position: "relative" }}>
@@ -79,7 +116,7 @@ const CandidateSelection = () => {
                 </TableCell>
                 <TableCell>
                   <Typography color="textSecondary" variant="h6">
-                  Candidate Details
+                    Candidate Details
                   </Typography>
                 </TableCell>
                 <TableCell>
@@ -120,7 +157,7 @@ const CandidateSelection = () => {
                   <TableCell>
                     <Box display="flex" alignItems="center">
                       <Box>
-                      <Typography variant="h6" fontWeight={600}>
+                        <Typography variant="h6" fontWeight={600}>
                           {cv.Name}
                         </Typography>
                         <Typography color="textSecondary" fontSize="13px">
@@ -174,13 +211,13 @@ const CandidateSelection = () => {
                     </Typography>
                   </TableCell>
                   <TableCell align="right">
-                  <IconButton>
-                    <ForwardToInboxIcon fontSize="large" color="success" />
-                  </IconButton>
-                  <IconButton>
-                    <CancelIcon fontSize="large" sx={{ color: "#f44336" }} />
-                  </IconButton>
-                </TableCell>
+                    <IconButton onClick={() => handleButtonClick(cv, "accept")}>
+                      <ForwardToInboxIcon fontSize="large" color="success" />
+                    </IconButton>
+                    <IconButton onClick={() => handleButtonClick(cv, "reject")}>
+                      <CancelIcon fontSize="large" sx={{ color: "#f44336" }} />
+                    </IconButton>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
