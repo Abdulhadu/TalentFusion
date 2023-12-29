@@ -5,8 +5,6 @@ import PageContainer from '@/app/Services/components/container/PageContainer';
 import SalesOverview from '@/app/Services/components/dashboard/SalesOverview';
 import DailyActivity from '@/app/Services/components/dashboard/Recomendation';
 import ProductPerformance from '@/app/Services/components/dashboard/UserOverview';
-import BlogCard from '@/app/Services/components/dashboard/Blog';
-import Loading from '../loading';
 import React from 'react';
 
 const Dashboard = () => {
@@ -24,9 +22,6 @@ const Dashboard = () => {
             </Grid>
             <Grid item xs={12} lg={8}>
               <ProductPerformance />
-            </Grid>
-            <Grid item xs={12} lg={12}>
-              <BlogCard />
             </Grid>
           </Grid>
         </Box>

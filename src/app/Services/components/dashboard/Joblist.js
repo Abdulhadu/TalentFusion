@@ -1,24 +1,11 @@
+"use client";
 import React, { useState, useEffect } from "react";
-import ForwardToInboxIcon from "@mui/icons-material/ForwardToInbox";
-import CancelIcon from "@mui/icons-material/Cancel";
-import {
-  Typography,
-  Box,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  TableContainer,
-  LinearProgress,
-  IconButton,
-} from "@mui/material";
+import { Box, LinearProgress } from "@mui/material";
 
 const Joblist = () => {
   const [jobData, setJobData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedDescriptions, setExpandedDescriptions] = useState({});
-
 
   useEffect(() => {
     const fetchData = async () => {

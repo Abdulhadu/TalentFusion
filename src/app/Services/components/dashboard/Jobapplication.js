@@ -1,6 +1,10 @@
-'use client'
-import { useState } from "react";
-import React from "react";
+"use client";
+import React, { useState, useEffect } from "react";
+import { Box, CircularProgress } from "@mui/material";
+import EmailIcon from "@mui/icons-material/Email";
+import AddLocationAltIcon from "@mui/icons-material/AddLocationAlt";
+import PaidIcon from "@mui/icons-material/Paid";
+import Company_details from "@/app/Services/components/dashboard/company_details"
 
 const Jobapplication = () => {
   const [resumeFile, setResumeFile] = useState(null);
@@ -42,19 +46,10 @@ const Jobapplication = () => {
 
   return (
     <>
-      <img
-        className="w-32 h-32 rounded-full mx-auto"
-        src="https://picsum.photos/200"
-        alt="Profile picture"
-      ></img>
-      <h2 className="text-center text-2xl font-semibold mt-3">John Doe</h2>
-      <p className="text-center text-gray-600 mt-1">Software Engineer</p>
-
-      <div className="mt-5">
-        <p className="text-gray-600 mt-2">24 August 2024</p>
-        <p className="text-gray-600 mt-2">London, Morgon LM-1890</p>
-        <p className="text-gray-600 mt-2">Salary: 20,000rs</p>
+      <div>
+       <Company_details/>
       </div>
+
       <div>
         <div className="mx-auto lg:mt-8 max-w-xs">
           <form

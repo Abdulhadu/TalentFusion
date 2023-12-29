@@ -1,10 +1,16 @@
-'use client';
-import React from 'react'
+"use client";
+import React, { useState, useEffect } from "react";
+import PrivateRoute from "../../components/dashboard/PrivateRoute";
 
-const page = () => {
+const Page = () => {
+ 
   return (
-    <div>Attrition page</div>
-  )
-}
+    <PrivateRoute>
+      <div>
+        <h1>Welcome to the Attrition page</h1>
+      </div>
+    </PrivateRoute>
+  );
+};
 
-export default page
+export default Page;

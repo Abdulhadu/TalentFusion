@@ -363,9 +363,12 @@ def job_recommendation():
             resume_file = request.files['resume']
             save_image_path = './Uploaded_Resumes/'+resume_file.filename
             print("Savve image pathe is :", save_image_path)
-            with open(save_image_path, "wb") as f:
-                f.write(resume_file.getbuffer())
-                print("Resume Opem")
+            try:
+                with open(save_image_path, "wb") as f:
+                    f.write(resume_file.read())#getbuffer() shared a memory between the object
+                    print("Resume Opem")
+            except:
+                print("Fail to open File")
 
             resume_data = ResumeParser(save_image_path).get_extracted_data()
             print("Reume Name is : ", resume_file.filename)
