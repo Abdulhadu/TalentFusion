@@ -5,23 +5,35 @@ import { jwtDecode } from "jwt-decode";
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children, initialAuthenticated }) => {
-  const [authenticated, setAuthenticated] = useState(initialAuthenticated);
+  const [recruiterAuthenticated, setRecruiterAuthenticated] = useState(initialAuthenticated);
+  const [interviewerAuthenticated, setInterviewerAuthenticated] = useState(initialAuthenticated);
 
   useEffect(() => {
     // Check if the user is authenticated (e.g., check for the presence of a valid token)
     const checkAuthentication = async () => {
       const token = localStorage.getItem('jwtToken');
       if (token) {
+        console.log("tokes is: ", token)
+        const { user_type } = jwtDecode(token);
+        console.log("user_type is: ", user_type)
         const isValidToken = await validateToken(token);
 
         if (isValidToken) {
-          setAuthenticated(true);
+          if ( user_type=== 'recruiter') {
+            setRecruiterAuthenticated(true);
+          } else if ( user_type === 'interviewer') {
+            setInterviewerAuthenticated(true);
+          } else {
+            console.error('Invalid user type in token');
+          }
         } else {
           localStorage.removeItem('jwtToken');
-          setAuthenticated(false);
+          setRecruiterAuthenticated(false);
+          setInterviewerAuthenticated(false);
         }
       } else {
-        setAuthenticated(false);
+        setRecruiterAuthenticated(false);
+        setInterviewerAuthenticated(false);
       }
     };
   
@@ -54,17 +66,25 @@ export const AuthProvider = ({ children, initialAuthenticated }) => {
 
   const login = (token) => {
     localStorage.setItem('jwtToken', token);
-    setAuthenticated(true);
+    const { user_type } = jwtDecode(token);
+    if (user_type === 'recruiter') {
+      setRecruiterAuthenticated(true);
+    } else if (user_type === 'interviewer') {
+      setInterviewerAuthenticated(true);
+    } else {
+      console.error('Invalid user type in token');
+    }
   };
 
   const logout = () => {
     localStorage.removeItem('jwtToken');
-    setAuthenticated(false);
+    setRecruiterAuthenticated(false);
+    setInterviewerAuthenticated(false);
   };
   
 
   return (
-    <AuthContext.Provider value={{ authenticated, login, logout }}>
+    <AuthContext.Provider value={{ recruiterAuthenticated, interviewerAuthenticated, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

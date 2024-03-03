@@ -8,8 +8,8 @@ const Page = () => {
 
     return (
         <div>
-            <JobRecomendation/>
             <SkillBasedJob/>
+            
         </div>
     );
 };

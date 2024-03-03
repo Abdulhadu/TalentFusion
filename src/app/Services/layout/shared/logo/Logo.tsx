@@ -3,8 +3,8 @@ import { styled } from "@mui/material";
 import Image from "next/image";
 
 const LinkStyled = styled(Link)(() => ({
-  height: "40px",
-  width: "180px",
+  height: "auto", // Adjusted height to maintain aspect ratio
+  width: "250px", // Increased width for a bigger logo
   overflow: "hidden",
   display: "block",
 }));
@@ -12,7 +12,7 @@ const LinkStyled = styled(Link)(() => ({
 const Logo = () => {
   return (
     <LinkStyled href="/">
-      <Image src="/images/logos/logo-dark.svg" alt="logo" height={40} width={105} priority />
+      <Image src="/images/logos/telent-fussion-logo.png" alt="logo" height={50} width={200} priority />
     </LinkStyled>
   );
 };

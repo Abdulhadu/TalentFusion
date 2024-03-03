@@ -5,7 +5,7 @@ import PrivateRoute from "../../components/dashboard/PrivateRoute";
 const Page = () => {
  
   return (
-    <PrivateRoute>
+    <PrivateRoute userType="recruiter">
       <div>
         <h1>Welcome to the Attrition page</h1>
       </div>

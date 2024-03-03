@@ -4,9 +4,11 @@ import "/public/questionPageStyle.css";
 import { Paper, Grid, Stack, TextField, Button } from "@mui/material";
 import BaseCard from "@/app/Services/components/shared/BaseCard";
 import Questions from "@/app/Services/components/dashboard/Questions";
+import { useSpeechSynthesis } from "react-speech-kit";
 
 const VideoRecording = () => {
   const [question, setQuestion] = useState("");
+  const { speak } = useSpeechSynthesis(); 
   useEffect(() => {
     // Import the JavaScript file dynamically
     import("/public/questionPagescript.js")
@@ -19,20 +21,27 @@ const VideoRecording = () => {
         console.error("Error loading script:", error);
       });
   }, []);
-  const handleNextQuestion = () => {
-    if (count < questions.length) {
-      setQuestion(question[count]);
-      count++;
-    } else {
-      count = 0;
-      setQuestion(question[count]);
-    }
-  };
+  // const handleNextQuestion = () => {
+  //   if (count < questions.length) {
+  //     setQuestion(question[count]);
+  //     console.log("the next question is saved..", question[count])
+  //     speakQuestion(question[count]);
+  //     count++;
+  //   } else {
+  //     count = 0;
+  //     setQuestion(question[count]);
+  //   }
+  // };
+
+  // const speakQuestion = (text) => {
+  //   console.log("speaking")
+  //   speak({ text }); // Use the speak function from useSpeechSynthesis hook
+  // };
   return (
     <>
       <Grid container spacing={3}>
         <Grid item xs={12} lg={6}>
-        <BaseCard title="Post Job Vacancy">
+        <BaseCard title="Video Recorded">
           <div id="container">
             <video id="gum" playsInline autoPlay muted></video>
 
@@ -74,9 +83,13 @@ const VideoRecording = () => {
           </BaseCard>
         </Grid>
         <Grid item xs={12} lg={6}>
-          <BaseCard title="Post Job Vacancy">
+          <BaseCard title="Questionaries">
             <div id="question">
-              <Questions question={question} onNext={handleNextQuestion} />
+            <Questions
+                question={question}
+                // onNext={handleNextQuestion}
+             
+              />
             </div>
           </BaseCard>
         </Grid>

@@ -19,12 +19,12 @@ const Upgrade = () => (
     >
       <Image
         src={sidebarBuynowsvg}
-        alt={sidebarBuynowsvg}
+        alt="{sidebarBuynowsvg}"
         className="buyNowImg"
       />
       <Box pb={3} pt={3}>
         <Typography variant="h4" fontWeight="700" mb={2}>
-          Sigin For Free 
+          Sign Up For Free 
         </Typography>
         <Button
           variant="contained"

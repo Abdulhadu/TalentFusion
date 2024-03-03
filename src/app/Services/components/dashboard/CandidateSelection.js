@@ -5,6 +5,7 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import {
   Typography,
   Box,
+  Stack,
   Table,
   TableBody,
   TableCell,
@@ -15,10 +16,17 @@ import {
   IconButton,
 } from "@mui/material";
 import BaseCard from "../shared/DashboardCard";
+import MailOutlineIcon from "@mui/icons-material/MailOutline";
+import ThumbDownAltIcon from "@mui/icons-material/ThumbDownAlt";
+import Tooltip from '@mui/material/Tooltip';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 
 const CandidateSelection = () => {
   const [cvData, setCVData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [emailSent, setEmailSent] = useState({});
 
   useEffect(() => {
     const fetchData = async () => {
@@ -75,7 +83,17 @@ const CandidateSelection = () => {
       }
 
       // Update the UI or handle success as needed
-      console.log(`${action} request successful for candidate: ${cv.Name}`);
+      toast.success('${action} request successful for candidate: ${cv.Name}..!', {
+        position: "bottom-center",
+        autoClose: 1000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+      setEmailSent(prevState => ({ ...prevState, [cv.ID]: true }));
+     
     } catch (error) {
       console.error(`Error handling ${action} request:`, error.message);
     }
@@ -92,6 +110,17 @@ const CandidateSelection = () => {
   return (
     <>
       <BaseCard title="Top Matched and Selected Resumes">
+      <ToastContainer
+          position="bottom-center"
+          autoClose={5006}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+        />
         <TableContainer
           sx={{
             width: {
@@ -211,12 +240,27 @@ const CandidateSelection = () => {
                     </Typography>
                   </TableCell>
                   <TableCell align="right">
-                    <IconButton onClick={() => handleButtonClick(cv, "accept")}>
-                      <ForwardToInboxIcon fontSize="large" color="success" />
-                    </IconButton>
-                    <IconButton onClick={() => handleButtonClick(cv, "reject")}>
-                      <CancelIcon fontSize="large" sx={{ color: "#f44336" }} />
-                    </IconButton>
+                    <Stack direction="row" spacing={2}>
+                      <Tooltip title="Accept Candidate">
+                        <IconButton
+                          onClick={() => handleButtonClick(cv, "accept")}
+                          color="primary"
+                          disabled={emailSent[cv.ID]}
+                        >
+                          <MailOutlineIcon />
+                        </IconButton>
+                      </Tooltip>
+
+                      <Tooltip title="Reject Candidate">
+                        <IconButton
+                          onClick={() => handleButtonClick(cv, "reject")}
+                          color="error"
+                          disabled={emailSent[cv.ID]}
+                        >
+                          <ThumbDownAltIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </Stack>
                   </TableCell>
                 </TableRow>
               ))}

@@ -1,9 +1,12 @@
-import React from 'react'
+import React from "react";
 import PersonalityPrediction from "@/app/Services/components/dashboard/PersonalityPrediction";
+import PrivateRoute from "../../Services/components/dashboard/PrivateRoute";
 const page = () => {
   return (
-    <PersonalityPrediction/>
-  )
-}
+    <PrivateRoute userType="interviewer">
+      <PersonalityPrediction />
+    </PrivateRoute>
+  );
+};
 
-export default page
+export default page;

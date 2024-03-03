@@ -5,6 +5,7 @@ import numpy as np
 from numpy.core.numeric import NaN
 import pandas as pd
 import seaborn as sns
+import matplotlib
 import matplotlib.pyplot as plt
 import json
 import re
@@ -28,6 +29,7 @@ from fastapi import FastAPI
 from fastapi.encoders import jsonable_encoder
 import pandas as pd
 import json
+import asyncio
 from api.hr_recruiter.services.JobInfoExtraction import JobInfoExtraction
 from api.hr_recruiter.services.cvinfoExtraction import cvinfoExtraction
 from api.hr_recruiter.services.Rules import Rules
@@ -41,8 +43,8 @@ import secrets
 import jwt
 from datetime import datetime, timedelta
 from pymysqlpool import ConnectionPool
-
-
+from .facial_recognition import perform_facial_recognition
+from .analysis import video_analysis
 
 # Access the environment variables stored in .env file
 MYSQL_USER = config('mysql_user')
@@ -57,9 +59,6 @@ COMPANY_MAIL = config('company_mail')
 COMPANY_PSWD = config('company_pswd')
 SECRET_KEY = "python_jwt"
 
-
-# Create a Flask app
-app = Flask(__name__)
 
 db_config = {
     'host': 'localhost',
@@ -77,12 +76,14 @@ print("MySQL connection established successfully")
 recruiter = Blueprint('recruiter', __name__, url_prefix='/recruiter')
 
  
+ 
+
+
 # Function to get a connection from the pool
 def get_connection():
     return pool.get_connection()
 
-# Close the pool when the application is closed
-@app.teardown_appcontext
+
 def close_pool(error):
     pool.close_all()
 # ////////////////////////// Routes //////////////////////////////
@@ -613,6 +614,7 @@ def company_signin():
 
             if company:
                 json_data = {
+                    "user_type": "recruiter",
                     "Company_name": company[1],
                     "Company_email": email, 
                     "message": "JWT is awesome. You should try it!",
@@ -655,9 +657,20 @@ def interviewer():
                 candidate = cursor.fetchone()
          
             print("candidate is: ", candidate)
+            
+            expiration_time = datetime.utcnow() + timedelta(hours=3)
 
             if candidate:
-                response = {'status': 'ok', 'message': 'Login successful'}
+                json_data = {
+                    "user_type": "interviewer",
+                    "user_id": candidate[0],
+                    "email": email,
+                    "message": "Login successful",
+                    "date": str(datetime.now()),
+                    "exp": expiration_time
+                }
+                token = jwt.encode(payload=json_data, key=SECRET_KEY, algorithm="HS256")
+                response = {'status': 'ok', 'token': token}
                
             else:
                 response = {'status': 'error', 'message': 'Incorrect Credentials'}
@@ -671,28 +684,41 @@ def interviewer():
         return jsonify({'status': 'error', 'message': 'Invalid request'})
 
 
+USER_FILES_PATH = './static/user_files/'
 
+# Check if the directory exists, if not, create it
+os.makedirs(USER_FILES_PATH, exist_ok=True)
 # personality trait prediction using Logistic Regression and parsing resume
 @recruiter.route('/prediction' , methods = ['GET' , 'POST'])
 def predict():
     if request.method == 'POST':
         try:
+           user_id = request.form['user_id']
+           user_folder_path = os.path.join(USER_FILES_PATH, str(user_id))
+           
+           os.makedirs(user_folder_path, exist_ok=True)
+           
+           print("user folder path is : ", user_folder_path)
+
            fname = request.form['firstName'].capitalize()
            lname = request.form['lastName'].capitalize()
            age = int(request.form['age'])
            gender = request.form['gender']
            email = request.form['email']
            file = request.files['resume']
-    
-           path = './static/{}'.format(file.filename)
+           
+           path = os.path.join(user_folder_path, file.filename)
            file.save(path)
+    
+        #    path = './static/user_files/{}'.format(file.filename)
+        #    file.save(path)
            val1 = float(request.form['openness'])
            val2 = float(request.form['neuroticism'])
            val3 = float(request.form['conscientiousness'])
            val4 = float(request.form['agreeableness'])
            val5 = float(request.form['extraversion'])
         
-           print("Details are : ",fname , lname ,age,gender,email, file ,path ,val1,val2 , val3 , val4 , val5 )
+           print("Details are : ",fname , lname ,age,gender,email, file ,path ,val1,val2 , val3 , val4 , val5 , user_id )
  
         
             # model prediction
@@ -723,14 +749,17 @@ def predict():
                'Skills': str(data['skills']).replace("[", "").replace("]", "").replace("'", ""),
                'Degree': data['degree'][0] if data.get('degree') and isinstance(data['degree'], list) else None,
                'Designation': data['designation'][0] if data.get('designation') and isinstance(data['designation'], list) else None,
-                # 'Degree': data.get('degree', None)[0],
-                # 'Designation': data.get('designation', None)[0],
                 'Total Experience': data.get('total_experience'),
                 'Predicted Personality': pred
              }
+           
+           result_filename = f'{user_id}_result.json'
+           result_filepath = os.path.join(user_folder_path, result_filename)
+           with open(result_filepath, 'w') as result_file:
+              json.dump(result, result_file)
 
-           with open('./static/result.json', 'w') as file:
-               json.dump(result, file)
+        #    with open('./static/result.json', 'w') as file:
+        #        json.dump(result, file)
            response_data = {
                 'success': True,
                 'message': 'Prediction successful',
@@ -751,175 +780,559 @@ def predict():
         
         except Exception as e:
             error_message = str(e)
+            print(error_message)
             response_data = {'success': False, 'message': f'Error: {error_message}'}
             return jsonify(response_data)
         
     return jsonify({'success': False, 'message': 'Invalid method'})
 
 
+
+# # Record candidate's interview for face emotion and tone analysis
+# @recruiter.route('/analysis', methods = ['POST'])
+# def video_analysis():
+
+#     # get videos using media recorder js and save
+#     quest1 = request.files['question1']
+#     quest2 = request.files['question2']
+#     quest3 = request.files['question3']
+#     path1 = "./static/{}.{}".format("question1","webm")
+#     path2 = "./static/{}.{}".format("question2","webm")
+#     path3 = "./static/{}.{}".format("question3","webm")
+#     quest1.save(path1)
+#     quest2.save(path2)
+#     quest3.save(path3)
+
+#     # speech to text response for each question - AWS
+#     # responses = {'Question 1: Tell something about yourself': [] , 'Question 2: Why should we hire you?': [] , 'Question 3: Where Do You See Yourself Five Years From Now?': []}
+#     # ques = list(responses.keys())
+
+#     # text1 , data1 = extract_text("question1.webm")
+#     # time.sleep(15)
+#     # responses[ques[0]].append(text1)
+
+#     # text2 , data2 = extract_text("question2.webm")
+#     # time.sleep(15)
+#     # responses[ques[1]].append(text2)
+
+#     # text3 , data3 = extract_text("question3.webm")
+#     # time.sleep(15)
+#     # responses[ques[2]].append(text3)
+
+#     # tone analysis for each textual answer - IBM
+#     # res1 = analyze_tone(text1)
+#     # tones_doc1 = []
+
+#     # for tone in res1['document_tone']['tones']:
+#     #     tones_doc1.append((tone['tone_name'] , round(tone['score']*100, 2)))
+
+#     # if 'Tentative' not in [key for key, val in tones_doc1]:
+#     #     tones_doc1.append(('Tentative', 0.0))
+#     # if 'Analytical' not in [key for key, val in tones_doc1]:
+#     #     tones_doc1.append(('Analytical', 0.0))
+#     # if 'Fear' not in [key for key, val in tones_doc1]:
+#     #     tones_doc1.append(('Fear', 0.0))
+#     # if 'Confident' not in [key for key, val in tones_doc1]:
+#     #     tones_doc1.append(('Confident', 0.0))
+#     # if 'Joy' not in [key for key, val in tones_doc1]:
+#     #     tones_doc1.append(('Joy', 0.0))
+        
+#     # tones_doc1 = sorted(tones_doc1)
+
+#     # res2 = analyze_tone(text2)
+#     # tones_doc2 = []
+
+#     # for tone in res2['document_tone']['tones']:
+#     #     tones_doc2.append((tone['tone_name'] , round(tone['score']*100, 2)))
+        
+#     # if 'Tentative' not in [key for key, val in tones_doc2]:
+#     #     tones_doc2.append(('Tentative', 0.0))
+#     # if 'Analytical' not in [key for key, val in tones_doc2]:
+#     #     tones_doc2.append(('Analytical', 0.0))
+#     # if 'Fear' not in [key for key, val in tones_doc2]:
+#     #     tones_doc2.append(('Fear', 0.0))
+#     # if 'Confident' not in [key for key, val in tones_doc2]:
+#     #     tones_doc2.append(('Confident', 0.0))
+#     # if 'Joy' not in [key for key, val in tones_doc2]:
+#     #     tones_doc2.append(('Joy', 0.0))
+        
+#     # tones_doc2 = sorted(tones_doc2)
+
+#     # res3 = analyze_tone(text3)
+#     # tones_doc3 = []
+
+#     # for tone in res3['document_tone']['tones']:
+#     #     tones_doc3.append((tone['tone_name'] , round(tone['score']*100, 2)))
+        
+#     # if 'Tentative' not in [key for key, val in tones_doc3]:
+#     #     tones_doc3.append(('Tentative', 0.0))
+#     # if 'Analytical' not in [key for key, val in tones_doc3]:
+#     #     tones_doc3.append(('Analytical', 0.0))
+#     # if 'Fear' not in [key for key, val in tones_doc3]:
+#     #     tones_doc3.append(('Fear', 0.0))
+#     # if 'Confident' not in [key for key, val in tones_doc3]:
+#     #     tones_doc3.append(('Confident', 0.0))
+#     # if 'Joy' not in [key for key, val in tones_doc3]:
+#     #     tones_doc3.append(('Joy', 0.0))
+        
+#     # tones_doc3 = sorted(tones_doc3)
+
+#     # # plot tone analysis 
+#     # document_tones = tones_doc1 + tones_doc2 + tones_doc3
+
+#     # analytical_tone = []
+#     # tentative_tone = []
+#     # fear_tone = []
+#     # joy_tone = []
+#     # confident_tone = []
+
+#     # for sentiment, score in document_tones:
+#     #     if sentiment == "Analytical":
+#     #         analytical_tone.append(score)
+#     #     elif sentiment == "Tentative":
+#     #         tentative_tone.append(score)
+#     #     elif sentiment == "Fear":
+#     #         fear_tone.append(score)
+#     #     elif sentiment == "Joy":
+#     #         joy_tone.append(score)
+#     #     elif sentiment == "Confident":
+#     #         confident_tone.append(score)
+
+#     # values = np.array([0,1,2])*3
+#     # fig = plt.figure(figsize=(12, 6))
+#     # sns.set_style("whitegrid")
+#     # plt.xlim(-1.5, 10)
+
+#     # plt.bar(values , analytical_tone , width = 0.4 , label = 'Analytical')
+#     # plt.bar(values+0.4 , confident_tone , width = 0.4 , label = 'Confidence')
+#     # plt.bar(values+0.8 , fear_tone , width = 0.4 , label = 'Fear')
+#     # plt.bar(values-0.4 , joy_tone , width = 0.4 , label = 'Joy')
+#     # plt.bar(values-0.8 , tentative_tone , width = 0.4 , label = 'Tentative')
+
+#     # plt.xticks(ticks = values , labels = ['Question 1','Question 2','Question 3'] , fontsize = 15 , fontweight = 60)
+#     # plt.yticks(fontsize = 12 , fontweight = 90)
+#     # ax = plt.gca()
+#     # ax.xaxis.set_ticks_position('none')
+#     # ax.yaxis.set_ticks_position('none')                    
+#     # ax.xaxis.set_tick_params(pad = 5)
+#     # ax.yaxis.set_tick_params(pad = 5)
+#     # plt.legend()
+#     # plt.savefig(f'./static/tone_analysis.jpg' , bbox_inches = 'tight')
+
+#     # # save all responses
+#     # with open('./static/answers.json' , 'w') as file:
+#     #     json.dump(responses , file)
+
+
+#     try:
+#        # face emotion recognition - plotting the emotions against time in the video
+#        videos = ["question1.webm", "question2.webm", "question3.webm"]
+#        frame_per_sec = 100
+#        size = (1280, 720)
+
+#        video = cv2.VideoWriter(f"./static/combined.webm", cv2.VideoWriter_fourcc(*"VP90"), int(frame_per_sec), size)
+       
+#        print("Combined video save successfully")
+    
+
+#        # Write all the frames sequentially to the new video
+#        for v in videos:
+#            curr_v = cv2.VideoCapture(f'./static/{v}')
+#            while curr_v.isOpened():
+#                r, frame = curr_v.read()    
+#                if not r:
+#                    break
+#                video.write(frame)         
+#        video.release()
+#        print("Combined video for loop save successfully")
+       
+#        video_path = './static/combined.webm'
+#        perform_facial_recognition(video_path)
+
+#     #    face_detector = FER(mtcnn=True)
+#     #    print("Starting Emotional Analysis")
+#     #    input_video = Video(r"./static/combined.webm")
+#     #    processing_data = input_video.analyze(face_detector, display = False, save_frames = False, save_video = False, annotate_frames = False, zip_images = False)
+#     #    vid_df = input_video.to_pandas(processing_data)
+#     #    vid_df = input_video.get_first_face(vid_df)
+#     #    vid_df = input_video.get_emotions(vid_df)
+#     #    pltfig = vid_df.plot(figsize=(12, 6), fontsize=12).get_figure()
+#     #    plt.legend(fontsize = 'large' , loc = 1)
+#     #    pltfig.savefig(f'./static/fer_output.png')
+#        print("Completed succesffully")
+       
+       
+    # except Exception as e:
+    #     print("An error occurred:", e)
+    #     return jsonify({'success': False, 'error': str(e)})   
+       
+
+    # return jsonify({'success': True, 'message': 'Successfull recorded'})
+
+# Define a function for video analysis
+# async def video_analysis(user_id, user_folder_path, quest1_path, quest2_path, quest3_path):
+#     # speech to text response for each question - AWS
+#     responses = {'Question 1: Tell something about yourself': [] , 'Question 2: Why should we hire you?': [] , 'Question 3: Where Do You See Yourself Five Years From Now?': []}
+#     ques = list(responses.keys())
+
+#     text1, data1 = extract_text(user_folder_path, "question1.webm")
+#     time.sleep(15)
+#     responses[ques[0]].append(text1)
+
+#     text2, data2 = extract_text(user_folder_path, "question2.webm")
+#     time.sleep(15)
+#     responses[ques[1]].append(text2)
+
+#     text3, data3 = extract_text(user_folder_path, "question3.webm")
+#     time.sleep(15)
+#     responses[ques[2]].append(text3)
+
+#     # tone analysis for each textual answer - IBM
+#     res1 = analyze_tone(text1)
+#     tones_doc1 = []
+
+#     for tone in res1['document_tone']['tones']:
+#         tones_doc1.append((tone['tone_name'] , round(tone['score']*100, 2)))
+
+#     if 'Tentative' not in [key for key, val in tones_doc1]:
+#         tones_doc1.append(('Tentative', 0.0))
+#     if 'Analytical' not in [key for key, val in tones_doc1]:
+#         tones_doc1.append(('Analytical', 0.0))
+#     if 'Fear' not in [key for key, val in tones_doc1]:
+#         tones_doc1.append(('Fear', 0.0))
+#     if 'Confident' not in [key for key, val in tones_doc1]:
+#         tones_doc1.append(('Confident', 0.0))
+#     if 'Joy' not in [key for key, val in tones_doc1]:
+#         tones_doc1.append(('Joy', 0.0))
+        
+#     tones_doc1 = sorted(tones_doc1)
+
+#     res2 = analyze_tone(text2)
+#     tones_doc2 = []
+
+#     for tone in res2['document_tone']['tones']:
+#         tones_doc2.append((tone['tone_name'] , round(tone['score']*100, 2)))
+        
+#     if 'Tentative' not in [key for key, val in tones_doc2]:
+#         tones_doc2.append(('Tentative', 0.0))
+#     if 'Analytical' not in [key for key, val in tones_doc2]:
+#         tones_doc2.append(('Analytical', 0.0))
+#     if 'Fear' not in [key for key, val in tones_doc2]:
+#         tones_doc2.append(('Fear', 0.0))
+#     if 'Confident' not in [key for key, val in tones_doc2]:
+#         tones_doc2.append(('Confident', 0.0))
+#     if 'Joy' not in [key for key, val in tones_doc2]:
+#         tones_doc2.append(('Joy', 0.0))
+        
+#     tones_doc2 = sorted(tones_doc2)
+
+#     res3 = analyze_tone(text3)
+#     tones_doc3 = []
+
+#     for tone in res3['document_tone']['tones']:
+#         tones_doc3.append((tone['tone_name'] , round(tone['score']*100, 2)))
+        
+#     if 'Tentative' not in [key for key, val in tones_doc3]:
+#         tones_doc3.append(('Tentative', 0.0))
+#     if 'Analytical' not in [key for key, val in tones_doc3]:
+#         tones_doc3.append(('Analytical', 0.0))
+#     if 'Fear' not in [key for key, val in tones_doc3]:
+#         tones_doc3.append(('Fear', 0.0))
+#     if 'Confident' not in [key for key, val in tones_doc3]:
+#         tones_doc3.append(('Confident', 0.0))
+#     if 'Joy' not in [key for key, val in tones_doc3]:
+#         tones_doc3.append(('Joy', 0.0))
+        
+#     tones_doc3 = sorted(tones_doc3)
+
+#     # plot tone analysis 
+#     document_tones = tones_doc1 + tones_doc2 + tones_doc3
+
+#     analytical_tone = []
+#     tentative_tone = []
+#     fear_tone = []
+#     joy_tone = []
+#     confident_tone = []
+#     neutral_tone = []
+
+#     for sentiment, score in document_tones:
+#         if sentiment == "Analytical":
+#             analytical_tone.append(score)
+#         elif sentiment == "Tentative":
+#             tentative_tone.append(score)
+#         elif sentiment == "Fear":
+#             fear_tone.append(score)
+#         elif sentiment == "Joy":
+#             joy_tone.append(score)
+#         elif sentiment == "Confident":
+#             confident_tone.append(score)
+#         elif sentiment == "Neutral":  # Handle neutral tone
+#             neutral_tone.append(score)
+            
+
+
+#     values = np.array([0,1,2])*3
+#     fig = plt.figure(figsize=(12, 6))
+#     sns.set_style("whitegrid")
+#     plt.xlim(-1.5, 10)
+
+#     plt.bar(values , analytical_tone , width = 0.4 , label = 'Analytical')
+#     plt.bar(values+0.4 , confident_tone , width = 0.4 , label = 'Confidence')
+#     plt.bar(values+0.8 , fear_tone , width = 0.4 , label = 'Fear')
+#     plt.bar(values-0.4 , joy_tone , width = 0.4 , label = 'Joy')
+#     plt.bar(values-0.8 , tentative_tone , width = 0.4 , label = 'Tentative')
+#     plt.bar(values - 1.2, neutral_tone, width=0.4, label='Neutral')
+
+#     plt.xticks(ticks = values , labels = ['Question 1','Question 2','Question 3'] , fontsize = 15 , fontweight = 60)
+#     plt.yticks(fontsize = 12 , fontweight = 90)
+#     ax = plt.gca()
+#     ax.xaxis.set_ticks_position('none')
+#     ax.yaxis.set_ticks_position('none')                    
+#     ax.xaxis.set_tick_params(pad = 5)
+#     ax.yaxis.set_tick_params(pad = 5)
+#     plt.legend()
+#     plt.savefig(os.path.join(user_folder_path, f'{user_id}_tone_analysis.jpg'), bbox_inches='tight')
+
+#     # save all resposnses
+#     result_filename = f'{user_id}_answers.json'
+#     result_filepath = os.path.join(user_folder_path, result_filename)
+#     with open(result_filepath, 'w') as file:
+#         json.dump(responses, file)
+
+#     with open('./static/answers.json' , 'w') as file:
+#         json.dump(responses , file)
+
+#     # face emotion recognition - plotting the emotions against time in the video
+#     videos = ["question1.webm", "question2.webm", "question3.webm"]
+#     frame_per_sec = 100
+#     size = (1280, 720)
+    
+    
+#     combined_video_path = os.path.join(user_folder_path, 'combined.webm')
+#     video = cv2.VideoWriter(combined_video_path, cv2.VideoWriter_fourcc(*"VP90"), int(frame_per_sec), size)
+
+#     # Write all the frames sequentially to the new video
+#     for v in videos:
+#         video_path = os.path.join(user_folder_path, v)
+#         print(video_path)
+#         curr_v = cv2.VideoCapture(video_path)
+#         while curr_v.isOpened():
+#             r, frame = curr_v.read()    
+#             if not r:
+#                 break
+#             video.write(frame)         
+#     video.release()
+#     print("video saved succesfully")
+#     print(combined_video_path)
+#     print("Combined video for loop save successfully")
+       
+#     video_path = combined_video_path
+#     perform_facial_recognition(video_path, user_folder_path)
+#     # Your video analysis code here...
+#     # This code will run asynchronously in the background
+#     await asyncio.sleep(5) 
+
 # Record candidate's interview for face emotion and tone analysis
 @recruiter.route('/analysis', methods = ['POST'])
-def video_analysis():
+def video_analysis_endpoint():
+    user_id = request.form['user_id']
+    user_folder_path = os.path.join(USER_FILES_PATH, str(user_id))
+    
+    os.makedirs(user_folder_path, exist_ok=True)
+    print("user folder path is: ", user_folder_path)
 
     # get videos using media recorder js and save
     quest1 = request.files['question1']
     quest2 = request.files['question2']
     quest3 = request.files['question3']
-    path1 = "./static/{}.{}".format("question1","webm")
-    path2 = "./static/{}.{}".format("question2","webm")
-    path3 = "./static/{}.{}".format("question3","webm")
+    path1 = os.path.join(user_folder_path, "question1.webm")
+    path2 = os.path.join(user_folder_path, "question2.webm")
+    path3 = os.path.join(user_folder_path, "question3.webm")
     quest1.save(path1)
     quest2.save(path2)
     quest3.save(path3)
+    
+    # Run video analysis asynchronously using asyncio.run()
+    # Enqueue the video analysis task
+    video_analysis.delay(user_id, user_folder_path, path1, path2, path3)
 
-    # speech to text response for each question - AWS
-    responses = {'Question 1: Tell something about yourself': [] , 'Question 2: Why should we hire you?': [] , 'Question 3: Where Do You See Yourself Five Years From Now?': []}
-    ques = list(responses.keys())
+    # # speech to text response for each question - AWS
+    # responses = {'Question 1: Tell something about yourself': [] , 'Question 2: Why should we hire you?': [] , 'Question 3: Where Do You See Yourself Five Years From Now?': []}
+    # ques = list(responses.keys())
 
-    text1 , data1 = extract_text("question1.webm")
-    time.sleep(15)
-    responses[ques[0]].append(text1)
+    # text1, data1 = extract_text(user_folder_path, "question1.webm")
+    # time.sleep(15)
+    # responses[ques[0]].append(text1)
 
-    text2 , data2 = extract_text("question2.webm")
-    time.sleep(15)
-    responses[ques[1]].append(text2)
+    # text2, data2 = extract_text(user_folder_path, "question2.webm")
+    # time.sleep(15)
+    # responses[ques[1]].append(text2)
 
-    text3 , data3 = extract_text("question3.webm")
-    time.sleep(15)
-    responses[ques[2]].append(text3)
+    # text3, data3 = extract_text(user_folder_path, "question3.webm")
+    # time.sleep(15)
+    # responses[ques[2]].append(text3)
 
-    # tone analysis for each textual answer - IBM
-    res1 = analyze_tone(text1)
-    tones_doc1 = []
+    # # tone analysis for each textual answer - IBM
+    # res1 = analyze_tone(text1)
+    # tones_doc1 = []
 
-    for tone in res1['document_tone']['tones']:
-        tones_doc1.append((tone['tone_name'] , round(tone['score']*100, 2)))
+    # for tone in res1['document_tone']['tones']:
+    #     tones_doc1.append((tone['tone_name'] , round(tone['score']*100, 2)))
 
-    if 'Tentative' not in [key for key, val in tones_doc1]:
-        tones_doc1.append(('Tentative', 0.0))
-    if 'Analytical' not in [key for key, val in tones_doc1]:
-        tones_doc1.append(('Analytical', 0.0))
-    if 'Fear' not in [key for key, val in tones_doc1]:
-        tones_doc1.append(('Fear', 0.0))
-    if 'Confident' not in [key for key, val in tones_doc1]:
-        tones_doc1.append(('Confident', 0.0))
-    if 'Joy' not in [key for key, val in tones_doc1]:
-        tones_doc1.append(('Joy', 0.0))
+    # if 'Tentative' not in [key for key, val in tones_doc1]:
+    #     tones_doc1.append(('Tentative', 0.0))
+    # if 'Analytical' not in [key for key, val in tones_doc1]:
+    #     tones_doc1.append(('Analytical', 0.0))
+    # if 'Fear' not in [key for key, val in tones_doc1]:
+    #     tones_doc1.append(('Fear', 0.0))
+    # if 'Confident' not in [key for key, val in tones_doc1]:
+    #     tones_doc1.append(('Confident', 0.0))
+    # if 'Joy' not in [key for key, val in tones_doc1]:
+    #     tones_doc1.append(('Joy', 0.0))
         
-    tones_doc1 = sorted(tones_doc1)
+    # tones_doc1 = sorted(tones_doc1)
 
-    res2 = analyze_tone(text2)
-    tones_doc2 = []
+    # res2 = analyze_tone(text2)
+    # tones_doc2 = []
 
-    for tone in res2['document_tone']['tones']:
-        tones_doc2.append((tone['tone_name'] , round(tone['score']*100, 2)))
+    # for tone in res2['document_tone']['tones']:
+    #     tones_doc2.append((tone['tone_name'] , round(tone['score']*100, 2)))
         
-    if 'Tentative' not in [key for key, val in tones_doc2]:
-        tones_doc2.append(('Tentative', 0.0))
-    if 'Analytical' not in [key for key, val in tones_doc2]:
-        tones_doc2.append(('Analytical', 0.0))
-    if 'Fear' not in [key for key, val in tones_doc2]:
-        tones_doc2.append(('Fear', 0.0))
-    if 'Confident' not in [key for key, val in tones_doc2]:
-        tones_doc2.append(('Confident', 0.0))
-    if 'Joy' not in [key for key, val in tones_doc2]:
-        tones_doc2.append(('Joy', 0.0))
+    # if 'Tentative' not in [key for key, val in tones_doc2]:
+    #     tones_doc2.append(('Tentative', 0.0))
+    # if 'Analytical' not in [key for key, val in tones_doc2]:
+    #     tones_doc2.append(('Analytical', 0.0))
+    # if 'Fear' not in [key for key, val in tones_doc2]:
+    #     tones_doc2.append(('Fear', 0.0))
+    # if 'Confident' not in [key for key, val in tones_doc2]:
+    #     tones_doc2.append(('Confident', 0.0))
+    # if 'Joy' not in [key for key, val in tones_doc2]:
+    #     tones_doc2.append(('Joy', 0.0))
         
-    tones_doc2 = sorted(tones_doc2)
+    # tones_doc2 = sorted(tones_doc2)
 
-    res3 = analyze_tone(text3)
-    tones_doc3 = []
+    # res3 = analyze_tone(text3)
+    # tones_doc3 = []
 
-    for tone in res3['document_tone']['tones']:
-        tones_doc3.append((tone['tone_name'] , round(tone['score']*100, 2)))
+    # for tone in res3['document_tone']['tones']:
+    #     tones_doc3.append((tone['tone_name'] , round(tone['score']*100, 2)))
         
-    if 'Tentative' not in [key for key, val in tones_doc3]:
-        tones_doc3.append(('Tentative', 0.0))
-    if 'Analytical' not in [key for key, val in tones_doc3]:
-        tones_doc3.append(('Analytical', 0.0))
-    if 'Fear' not in [key for key, val in tones_doc3]:
-        tones_doc3.append(('Fear', 0.0))
-    if 'Confident' not in [key for key, val in tones_doc3]:
-        tones_doc3.append(('Confident', 0.0))
-    if 'Joy' not in [key for key, val in tones_doc3]:
-        tones_doc3.append(('Joy', 0.0))
+    # if 'Tentative' not in [key for key, val in tones_doc3]:
+    #     tones_doc3.append(('Tentative', 0.0))
+    # if 'Analytical' not in [key for key, val in tones_doc3]:
+    #     tones_doc3.append(('Analytical', 0.0))
+    # if 'Fear' not in [key for key, val in tones_doc3]:
+    #     tones_doc3.append(('Fear', 0.0))
+    # if 'Confident' not in [key for key, val in tones_doc3]:
+    #     tones_doc3.append(('Confident', 0.0))
+    # if 'Joy' not in [key for key, val in tones_doc3]:
+    #     tones_doc3.append(('Joy', 0.0))
         
-    tones_doc3 = sorted(tones_doc3)
+    # tones_doc3 = sorted(tones_doc3)
 
-    # plot tone analysis 
-    document_tones = tones_doc1 + tones_doc2 + tones_doc3
+    # # plot tone analysis 
+    # document_tones = tones_doc1 + tones_doc2 + tones_doc3
 
-    analytical_tone = []
-    tentative_tone = []
-    fear_tone = []
-    joy_tone = []
-    confident_tone = []
+    # analytical_tone = []
+    # tentative_tone = []
+    # fear_tone = []
+    # joy_tone = []
+    # confident_tone = []
+    # neutral_tone = []
 
-    for sentiment, score in document_tones:
-        if sentiment == "Analytical":
-            analytical_tone.append(score)
-        elif sentiment == "Tentative":
-            tentative_tone.append(score)
-        elif sentiment == "Fear":
-            fear_tone.append(score)
-        elif sentiment == "Joy":
-            joy_tone.append(score)
-        elif sentiment == "Confident":
-            confident_tone.append(score)
+    # for sentiment, score in document_tones:
+    #     if sentiment == "Analytical":
+    #         analytical_tone.append(score)
+    #     elif sentiment == "Tentative":
+    #         tentative_tone.append(score)
+    #     elif sentiment == "Fear":
+    #         fear_tone.append(score)
+    #     elif sentiment == "Joy":
+    #         joy_tone.append(score)
+    #     elif sentiment == "Confident":
+    #         confident_tone.append(score)
+    #     elif sentiment == "Neutral":  # Handle neutral tone
+    #         neutral_tone.append(score)
+            
 
-    values = np.array([0,1,2])*3
-    fig = plt.figure(figsize=(12, 6))
-    sns.set_style("whitegrid")
-    plt.xlim(-1.5, 10)
 
-    plt.bar(values , analytical_tone , width = 0.4 , label = 'Analytical')
-    plt.bar(values+0.4 , confident_tone , width = 0.4 , label = 'Confidence')
-    plt.bar(values+0.8 , fear_tone , width = 0.4 , label = 'Fear')
-    plt.bar(values-0.4 , joy_tone , width = 0.4 , label = 'Joy')
-    plt.bar(values-0.8 , tentative_tone , width = 0.4 , label = 'Tentative')
+    # values = np.array([0,1,2])*3
+    # fig = plt.figure(figsize=(12, 6))
+    # sns.set_style("whitegrid")
+    # plt.xlim(-1.5, 10)
 
-    plt.xticks(ticks = values , labels = ['Question 1','Question 2','Question 3'] , fontsize = 15 , fontweight = 60)
-    plt.yticks(fontsize = 12 , fontweight = 90)
-    ax = plt.gca()
-    ax.xaxis.set_ticks_position('none')
-    ax.yaxis.set_ticks_position('none')                    
-    ax.xaxis.set_tick_params(pad = 5)
-    ax.yaxis.set_tick_params(pad = 5)
-    plt.legend()
-    plt.savefig(f'./static/tone_analysis.jpg' , bbox_inches = 'tight')
+    # plt.bar(values , analytical_tone , width = 0.4 , label = 'Analytical')
+    # plt.bar(values+0.4 , confident_tone , width = 0.4 , label = 'Confidence')
+    # plt.bar(values+0.8 , fear_tone , width = 0.4 , label = 'Fear')
+    # plt.bar(values-0.4 , joy_tone , width = 0.4 , label = 'Joy')
+    # plt.bar(values-0.8 , tentative_tone , width = 0.4 , label = 'Tentative')
+    # plt.bar(values - 1.2, neutral_tone, width=0.4, label='Neutral')
 
-    # save all responses
-    with open('./static/answers.json' , 'w') as file:
-        json.dump(responses , file)
+    # plt.xticks(ticks = values , labels = ['Question 1','Question 2','Question 3'] , fontsize = 15 , fontweight = 60)
+    # plt.yticks(fontsize = 12 , fontweight = 90)
+    # ax = plt.gca()
+    # ax.xaxis.set_ticks_position('none')
+    # ax.yaxis.set_ticks_position('none')                    
+    # ax.xaxis.set_tick_params(pad = 5)
+    # ax.yaxis.set_tick_params(pad = 5)
+    # plt.legend()
+    # plt.savefig(os.path.join(user_folder_path, f'{user_id}_tone_analysis.jpg'), bbox_inches='tight')
 
-    # face emotion recognition - plotting the emotions against time in the video
-    videos = ["question1.webm", "question2.webm", "question3.webm"]
-    frame_per_sec = 100
-    size = (1280, 720)
+    # # save all resposnses
+    # result_filename = f'{user_id}_answers.json'
+    # result_filepath = os.path.join(user_folder_path, result_filename)
+    # with open(result_filepath, 'w') as file:
+    #     json.dump(responses, file)
 
-    video = cv2.VideoWriter(f"./static/combined.webm", cv2.VideoWriter_fourcc(*"VP90"), int(frame_per_sec), size)
+    # with open('./static/answers.json' , 'w') as file:
+    #     json.dump(responses , file)
 
-    # Write all the frames sequentially to the new video
-    for v in videos:
-        curr_v = cv2.VideoCapture(f'./static/{v}')
-        while curr_v.isOpened():
-            r, frame = curr_v.read()    
-            if not r:
-                break
-            video.write(frame)         
-    video.release()
+    # # face emotion recognition - plotting the emotions against time in the video
+    # videos = ["question1.webm", "question2.webm", "question3.webm"]
+    # frame_per_sec = 100
+    # size = (1280, 720)
+    
+    
+    # combined_video_path = os.path.join(user_folder_path, 'combined.webm')
+    # video = cv2.VideoWriter(combined_video_path, cv2.VideoWriter_fourcc(*"VP90"), int(frame_per_sec), size)
 
-    face_detector = FER(mtcnn=True)
-    input_video = Video(r"./static/combined.webm")
-    processing_data = input_video.analyze(face_detector, display = False, save_frames = False, save_video = False, annotate_frames = False, zip_images = False)
-    vid_df = input_video.to_pandas(processing_data)
-    vid_df = input_video.get_first_face(vid_df)
-    vid_df = input_video.get_emotions(vid_df)
-    pltfig = vid_df.plot(figsize=(12, 6), fontsize=12).get_figure()
-    plt.legend(fontsize = 'large' , loc = 1)
-    pltfig.savefig(f'./static/fer_output.png')
+    # # Write all the frames sequentially to the new video
+    # for v in videos:
+    #     video_path = os.path.join(user_folder_path, v)
+    #     print(video_path)
+    #     curr_v = cv2.VideoCapture(video_path)
+    #     while curr_v.isOpened():
+    #         r, frame = curr_v.read()    
+    #         if not r:
+    #             break
+    #         video.write(frame)         
+    # video.release()
+    # print("video saved succesfully")
+    # print(combined_video_path)
+    # print("Combined video for loop save successfully")
+       
+    # video_path = combined_video_path
+    # perform_facial_recognition(video_path, user_folder_path)
+    
+    # input_video = Video(combined_video_path)
+    # print("input video path: ",input_video)
+    
+    # face_detector = FER(mtcnn=True)
+    # print("Combined video path:", combined_video_path)
+   
+    # processing_data = input_video.analyze(face_detector, display = False, save_frames = False, save_video = False, annotate_frames = False, zip_images = False)
+    # vid_df = input_video.to_pandas(processing_data)
+    # vid_df = input_video.get_first_face(vid_df)
+    # vid_df = input_video.get_emotions(vid_df)
+    # pltfig = vid_df.plot(figsize=(12, 6), fontsize=12).get_figure()
+    # plt.legend(fontsize = 'large' , loc = 1)
+    # # pltfig.savefig(f'./static/fer_output.png')
+    # # output_path = os.path.join(user_folder_path, 'fer_output.png')
+    # pltfig.savefig(os.path.join(user_folder_path, 'fer_output.png'))
+    
+    response_data = {'success': True, 'message': "Saved successfully"}
 
-    return "success"
+    return jsonify(response_data)
 
 
 # Interview completed response message
@@ -995,7 +1408,7 @@ def accept():
                f"At Talent Fusion, we were impressed with your skills and experience, and we believe that you will be a valuable addition to our organization.\n\n" \
                f"The next step in our hiring process is to invite you for a remote interview. Our outstanding hiring technology ensures a seamless and efficient interview process for candidates.\n\n" \
                f"You can schedule your interview at any convenient time using the following details:\n" \
-               f"Interview Link: [Your Interview Link]\n" \
+               f"Interview Link: http://localhost:3000/Interview/login \n" \
                f"Username: {email}\n" \
                f"Password: {password}\n\n" \
                f"We look forward to discussing your qualifications further and getting to know you better during the interview. If you have any questions or concerns, feel free to reach out.\n\n" \
@@ -1029,3 +1442,64 @@ def reject():
 
     return "success"
 
+
+
+
+@recruiter.route('/getUserData', methods=['GET'])
+def get_user_data():
+    userID = request.args.get('id')
+    print("user is: ", userID)
+    basePath = os.path.join(os.getcwd(), f'static/user_files/{userID}')
+    user_folder_path = os.path.join(USER_FILES_PATH, str(userID))
+    print("user folder path is: ", user_folder_path)
+
+    try:
+        result_filename = f'{userID}_answers.json'
+        answerFilePath = os.path.join(user_folder_path, result_filename)
+        with open(answerFilePath, 'r') as answerFile:
+            answerJsonData = json.load(answerFile)
+
+        # Read other information
+        resultFilePath = os.path.join(basePath, f'{userID}_result.json')
+        with open(resultFilePath, 'r') as resultFile:
+            resultJsonData = json.load(resultFile)
+
+        # Construct image URLs
+        toneAnalysisImageURL = f'/user_files/{userID}/{userID}_tone_analysis.jpg'
+        ferOutputImageURL = f'/user_files/{userID}/fer_output.png'
+        
+        # Add video file name to each question in the answers data
+        for index, (question, answer) in enumerate(answerJsonData.items(), start=1):
+            video_file_name = f'question{index}.webm'
+            answerJsonData[question].append(video_file_name)
+
+        # Send all the data in the response
+        response_data = {
+            'questionsAndAnswers': answerJsonData,
+            'userInfo': resultJsonData,
+            'toneAnalysisImage': toneAnalysisImageURL,
+            'ferOutputImage': ferOutputImageURL
+        }
+        return jsonify(response_data), 200
+    except Exception as e:
+        print('Error reading files:', e)
+        return jsonify({'error': 'Internal server error'}), 500
+
+
+@recruiter.route("/check_evaluation_data", methods=["POST"])
+def check_evaluation_data():
+    data = request.get_json()
+    candidate_id = data.get("candidate_id")
+    print("candidate id :",candidate_id)
+    if candidate_id is None:
+        return jsonify({"error": "Candidate ID is missing"}), 400
+
+    # Check if the folder for the candidate exists
+    candidate_folder_path = os.path.join("static/user_files/", f"{candidate_id}")
+    print("candidate folder pathe is: ",candidate_folder_path)
+    if not os.path.exists(candidate_folder_path):
+        return jsonify({"error": "Candidate folder does not exist"}), 404
+
+
+
+    return jsonify({"evaluation_data_ready": candidate_folder_path})
