@@ -1,167 +1,174 @@
-'use client'
 import React from "react";
 import {
   Typography,
   Box,
   Table,
-  TableBody,
-  TableCell,
   TableHead,
-  TableRow,
-  Chip,
   TableContainer,
 } from "@mui/material";
 import BaseCard from "../shared/DashboardCard";
-import BallotIcon from "@mui/icons-material/Ballot";
-import ExpandCircleDownIcon from "@mui/icons-material/ExpandCircleDown";
 import ArrowCircleRightIcon from "@mui/icons-material/ArrowCircleRight";
-import Alert from '@mui/material/Alert';
-import Stack from '@mui/material/Stack';
-import { spacing } from '@mui/system';
+import Alert from "@mui/material/Alert";
+import { Helmet } from "react-helmet-async";
 
-const UserOverview = () => {
+const UserOverview = ({ data }) => {
   return (
-    <BaseCard title="User Overview">
-      <TableContainer
-        sx={{
-          width: {
-            xs: "274px",
-            sm: "100%",
-          },
-        }}
-      >
-        <Table
-          aria-label="simple table"
+    <>
+      <Helmet>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Sometype+Mono:ital,wght@0,400..700;1,400..700&display=swap"
+          rel="stylesheet"
+        />
+      </Helmet>
+      <BaseCard title="User Overview">
+        <TableContainer
           sx={{
-            whiteSpace: "nowrap",
-            mt: 2,
+            width: {
+              xs: "274px",
+              sm: "100%",
+            },
           }}
         >
-          <TableHead>
-            <Box  sx={{ mb: 3}}>
-              <Typography
-                variant="subtitle1"
-                display="flex"
-                alignItems="center"
-                gutterBottom
-              >
-                <ArrowCircleRightIcon color="secondary" />
-                User Name:{" "}
-                <span
-                  style={{
-                    background: "#eeeeee",
-                    letterSpacing: "2px",
-                    marginLeft: "3px",
-                    paddingLeft: "5px",
-                    paddingRight: "3px",
-                    borderRadius: "8px",
-                  }}
+          <Table
+            aria-label="simple table"
+            sx={{
+              whiteSpace: "nowrap",
+              mt: 2,
+            }}
+          >
+            <TableHead>
+              <Box sx={{ mb: 3 }}>
+                <Typography
+                  variant="subtitle1"
+                  display="flex"
+                  alignItems="center"
+                  gutterBottom
                 >
-                  Abdul Hadi
-                </span>
-              </Typography>
-            </Box>
-            <Box  sx={{ mb: 3}}>
-              <Typography
-                variant="subtitle1"
-                display="flex"
-                alignItems="center"
-                gutterBottom
-              >
-                <ArrowCircleRightIcon color="secondary" />
-                Email Address:{" "}
-                <span
-                  style={{
-                    background: "#eeeeee",
-                    letterSpacing: "2px",
-                    marginLeft: "3px",
-                    paddingLeft: "5px",
-                    paddingRight: "3px",
-                    borderRadius: "8px",
-                  }}
+                  <ArrowCircleRightIcon color="secondary" />
+                  User Name:{" "}
+                  <span
+                    style={{
+                      fontFamily: "Sometype Mono",
+                      background: "#eeeeee",
+                      letterSpacing: "2px",
+                      marginLeft: "3px",
+                      paddingLeft: "5px",
+                      paddingRight: "3px",
+                      borderRadius: "8px",
+                    }}
+                  >
+                    {data.name}
+                  </span>
+                </Typography>
+              </Box>
+              <Box sx={{ mb: 3 }}>
+                <Typography
+                  variant="subtitle1"
+                  display="flex"
+                  alignItems="center"
+                  gutterBottom
                 >
-                  Hadi@27767@gmail.com
-                </span>
-              </Typography>
-            </Box>
-            <Box  sx={{ mb: 3}}>
-              <Typography
-                variant="subtitle1"
-                display="flex"
-                alignItems="center"
-                gutterBottom
-              >
-                <ArrowCircleRightIcon color="secondary" />
-                PHone No:{" "}
-                <span
-                  style={{
-                    background: "#eeeeee",
-                    letterSpacing: "2px",
-                    marginLeft: "3px",
-                    paddingLeft: "5px",
-                    paddingRight: "3px",
-                    borderRadius: "8px",
-                  }}
+                  <ArrowCircleRightIcon color="secondary" />
+                  Email Address:{" "}
+                  <span
+                    style={{
+                      fontFamily: "Sometype Mono",
+                      background: "#eeeeee",
+                      letterSpacing: "2px",
+                      marginLeft: "3px",
+                      paddingLeft: "5px",
+                      paddingRight: "3px",
+                      borderRadius: "8px",
+                    }}
+                  >
+                    {data.email}
+                  </span>
+                </Typography>
+              </Box>
+              <Box sx={{ mb: 3 }}>
+                <Typography
+                  variant="subtitle1"
+                  display="flex"
+                  alignItems="center"
+                  gutterBottom
                 >
-                  0313 7707410
-                </span>
-              </Typography>
-            </Box>
-            <Box  sx={{ mb: 3}}>
-              <Typography
-                variant="subtitle1"
-                display="flex"
-                alignItems="center"
-                gutterBottom
-              >
-                <ArrowCircleRightIcon color="secondary" />
-                No Of Pages:{" "}
-                <span
-                  style={{
-                    background: "#eeeeee",
-                    letterSpacing: "2px",
-                    marginLeft: "3px",
-                    paddingLeft: "5px",
-                    paddingRight: "3px",
-                    borderRadius: "8px",
-                  }}
+                  <ArrowCircleRightIcon color="secondary" />
+                  Phone No:{" "}
+                  <span
+                    style={{
+                      fontFamily: "Sometype Mono",
+                      background: "#eeeeee",
+                      letterSpacing: "2px",
+                      marginLeft: "3px",
+                      paddingLeft: "5px",
+                      paddingRight: "3px",
+                      borderRadius: "8px",
+                    }}
+                  >
+                    {data.mobile_number}
+                  </span>
+                </Typography>
+              </Box>
+              <Box sx={{ mb: 3 }}>
+                <Typography
+                  variant="subtitle1"
+                  display="flex"
+                  alignItems="center"
+                  gutterBottom
                 >
-                  2 Pages
-                </span>
-              </Typography>
-            </Box>
-            <Box  sx={{ mb: 3}}>
-              <Typography
-                variant="subtitle1"
-                display="flex"
-                alignItems="center"
-                gutterBottom
-              >
-                <ArrowCircleRightIcon color="secondary" />
-                Catergory:{" "}
-                <span
-                  style={{
-                    background: "#eeeeee",
-                    letterSpacing: "2px",
-                    marginLeft: "3px",
-                    paddingLeft: "5px",
-                    paddingRight: "3px",
-                    borderRadius: "8px",
-                  }}
+                  <ArrowCircleRightIcon color="secondary" />
+                  No Of Pages:{" "}
+                  <span
+                    style={{
+                      fontFamily: "Sometype Mono",
+                      background: "#eeeeee",
+                      letterSpacing: "2px",
+                      marginLeft: "3px",
+                      paddingLeft: "5px",
+                      paddingRight: "3px",
+                      borderRadius: "8px",
+                    }}
+                  >
+                    {data.no_of_pages} Pages
+                  </span>
+                </Typography>
+              </Box>
+              <Box sx={{ mb: 3 }}>
+                <Typography
+                  variant="subtitle1"
+                  display="flex"
+                  alignItems="center"
+                  gutterBottom
                 >
-                  Fresh
-                </span>
-              </Typography>
-            </Box>
-            <Box sx={{ mb: 3}}>
-              <Alert severity="success">
-                Our Analysis Say that You are a Web Developer...!
-              </Alert>
-            </Box>
-          </TableHead>
-        </Table>
-      </TableContainer>
-    </BaseCard>
+                  <ArrowCircleRightIcon color="secondary" />
+                  Category:{" "}
+                  <span
+                    style={{
+                      fontFamily: "Sometype Mono",
+                      background: "#eeeeee",
+                      letterSpacing: "2px",
+                      marginLeft: "3px",
+                      paddingLeft: "5px",
+                      paddingRight: "3px",
+                      borderRadius: "8px",
+                    }}
+                  >
+                    {data.category}
+                  </span>
+                </Typography>
+              </Box>
+              <Box sx={{ mb: 3 }}>
+                <Alert severity="success">
+                  Our Analysis Say that You are a {data.reco_field}...!
+                </Alert>
+              </Box>
+            </TableHead>
+          </Table>
+        </TableContainer>
+      </BaseCard>
+    </>
   );
 };
 

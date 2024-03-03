@@ -1,23 +1,39 @@
-"use client"
+"use client";
 import React from "react";
 import Chip from "@mui/material/Chip";
-import Stack from "@mui/material/Stack";
+import Paper from "@mui/material/Stack";
+import EmailIcon from "@mui/icons-material/Email";
+import WifiCalling3Icon from "@mui/icons-material/WifiCalling3";
+import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
 
-const Interviewer = () => {
+const Interviewer = ({ userData }) => {
   return (
     <>
       <img
         className="w-32 h-32 rounded-full mx-auto"
-        src="https://picsum.photos/200"
+        src="/images/person-image3.jpg"
         alt="Profile picture"
       ></img>
-      <h2 className="text-center text-2xl font-semibold mt-3">John Doe</h2>
-      <p className="text-center text-gray-600 mt-1">Software Engineer</p>
+      <h2 className="text-center text-2xl font-semibold mt-3">
+        {userData.Name}
+      </h2>
+      <p className="text-center text-gray-600 mt-1">{userData.Designation}</p>
 
       <div className="mt-5">
-        <p className="text-gray-600 mt-2">+92 313 7707 410</p>
-        <p className="text-gray-600 mt-2">Hadi37767@gmail.com</p>
-        <p className="text-gray-600 mt-2">Degree BS Computer Science</p>
+        <div className="flex items-center mt-6">
+          <EmailIcon sx={{ color: "#6B7280", fontSize: 18 }} />
+          <p className="text-gray-600 mt-1 ml-2">{userData["Mobile Number"]}</p>
+        </div>
+        <div className="flex items-center">
+          <WifiCalling3Icon sx={{ color: "#6B7280", fontSize: 18 }} />
+          <p className="text-gray-600 mt-1 ml-2">{userData.Email}</p>
+        </div>
+        <div className="flex items-center">
+          <WorkspacePremiumIcon sx={{ color: "#6B7280", fontSize: 18 }} />
+          <p className="text-gray-600 mt-1 ml-2">
+            {userData.Degree ? userData.Degree : "Not Specified"}
+          </p>
+        </div>
       </div>
       <div>
         <div className="mx-auto lg:mt-8 max-w-xs">
@@ -25,18 +41,19 @@ const Interviewer = () => {
             {/* Skills container */}
             <div className="mb-2">
               <p className="text-gray-600 font-semibold mb-1">Skills:</p>
-              <Stack direction="row" flexWrap="wrap">
-              {/* Replace these dummy skills with your actual skills */}
-              <Chip label="React" color="primary" sx={{ margin: "4px" }} />
-              <Chip label="JavaScript" color="primary" sx={{ margin: "4px" }} />
-              <Chip label="Node.js" color="primary" sx={{ margin: "4px" }} />
-              <Chip label="React" color="primary" sx={{ margin: "4px" }} />
-              <Chip label="JavaScript" color="primary" sx={{ margin: "4px" }} />
-              <Chip label="Node.js" color="primary" sx={{ margin: "4px" }} />
-              <Chip label="React" color="primary" sx={{ margin: "4px" }} />
-              <Chip label="JavaScript" color="primary" sx={{ margin: "4px" }} />
-              <Chip label="Node.js" color="primary" sx={{ margin: "4px" }} />
-            </Stack>
+              <Paper
+                elevation={3}
+                sx={{
+                  padding: "16px",
+                  marginTop: "16px",
+                }}
+              >
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                  {userData.Skills.split(",").map((skill, index) => (
+                    <Chip key={index} label={skill} />
+                  ))}
+                </div>
+              </Paper>
             </div>
           </div>
         </div>

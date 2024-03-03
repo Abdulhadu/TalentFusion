@@ -2,9 +2,11 @@ from flask import Flask
 from flask_cors import CORS
 from flask_mail import Mail
 from decouple import config
-from flask_login import LoginManager
+from celery import Celery
 
 def create_app():
+    
+    
     app = Flask(__name__)
     CORS(app) 
     MAIL_USERNAME = config('mail_username')
@@ -19,16 +21,18 @@ def create_app():
     app.config['MAIL_ASCII_ATTACHMENTS'] = True
     app.config['SECRET_KEY'] = 'your-secret-key'
     mail = Mail(app)
-    
-    login_manager = LoginManager()
-    login_manager.init_app(app)
-  
-
+   
     # Register blueprints
     from .user.routes import user
     from .hr_recruiter.routes import recruiter
 
     app.register_blueprint(user, url_prefix='/user')
     app.register_blueprint(recruiter, url_prefix='/recruiter')
+    
+    celery = Celery(
+        app.name,
+        backend='rpc',  # Use RPC backend for simplicity
+        broker='memory://'  # Use in-memory broker for simplicity
+    )
 
     return app

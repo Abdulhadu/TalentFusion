@@ -1,9 +1,32 @@
-"use client"
-import React, { useState } from "react";
+"use client";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { jwtDecode } from "jwt-decode";
+import { useAuth } from "../../context/Authcontext";
 
 const PersonalityPrediction = () => {
-  const router = useRouter()
+  const { interviewerAuthenticated } = useAuth();
+  const [user_id, setUserId] = useState();
+
+  useEffect(() => {
+    const fetchUserId = () => {
+      const token = localStorage.getItem("jwtToken");
+      if (token) {
+        try {
+          const decodedToken = jwtDecode(token);
+          const userId = decodedToken["user_id"]; // Replace with the correct key
+          setUserId(userId);
+          console.log("Decoded token id:", userId);
+        } catch (error) {
+          console.error("Error decoding token:", error);
+        }
+      }
+    };
+
+    fetchUserId();
+  }, [interviewerAuthenticated]);
+
+  const router = useRouter();
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -16,7 +39,15 @@ const PersonalityPrediction = () => {
     conscientiousness: "",
     agreeableness: "",
     extraversion: "",
+    user_id: undefined,
   });
+
+  useEffect(() => {
+    setFormData((prevData) => ({
+      ...prevData,
+      user_id: user_id,
+    }));
+  }, [user_id]);
 
   const handleChange = (e) => {
     const { name, value, type, files } = e.target;
@@ -49,7 +80,7 @@ const PersonalityPrediction = () => {
 
       if (response.ok) {
         // Handle success (redirect, show success message, etc.)
-        router.push("/Interview")
+        router.push("/Interview");
       } else {
         // Handle error (show error message, etc.)
         console.error("Prediction submission failed");

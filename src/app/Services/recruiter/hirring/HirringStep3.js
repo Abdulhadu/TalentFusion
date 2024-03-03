@@ -8,7 +8,7 @@ const HirringStep3 = () => {
   return (
     <>
       <Grid item xs={12} lg={12}>
-        <BaseCard title="Step #2">
+        <BaseCard title="Step #3">
           <CandidateSelection />
         </BaseCard>
       </Grid>

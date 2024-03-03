@@ -2,6 +2,8 @@
 import { Grid, Paper } from "@mui/material";
 import BaseCard from '@/app/Services/components/shared/BaseCard';
 import { createTheme, ThemeProvider, styled } from '@mui/material/styles';
+import MonthlyEarnings from "@/app/Services/components/dashboard/MonthlyEarnings";
+
 
 const Item = styled(Paper)(({ theme }) => ({
     ...theme.typography.body1,
@@ -15,13 +17,13 @@ const darkTheme = createTheme({ palette: { mode: 'dark' } });
 const lightTheme = createTheme({ palette: { mode: 'light' } });
 
 
-import ProductPerfomance from "@/app/Services/components/dashboard/Recomendation";
+
 
 const Tables = () => {
   return (
     <Grid container spacing={0}>
       <Grid item xs={12} lg={12}>
-        <ProductPerfomance />
+        <MonthlyEarnings />
       </Grid>
     </Grid>
   );

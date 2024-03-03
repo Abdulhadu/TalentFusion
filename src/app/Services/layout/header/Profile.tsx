@@ -27,13 +27,13 @@ import {
 
 const Profile = () => {
   const [anchorEl2, setAnchorEl2] = useState(null);
-  const { authenticated, logout } = useAuth();
+  const {  recruiterAuthenticated , logout } = useAuth();
   const [companyName, setCompanyName] = useState("Guest");
 
   useEffect(() => {
     const fetchCompanyName = () => {
       const token = localStorage.getItem('jwtToken');
-      if (token && authenticated) {
+      if (token && recruiterAuthenticated) {
         const decodedToken = jwtDecode(token) as any;
         setCompanyName(decodedToken?.Company_name || "Guest");
       } else {
@@ -42,7 +42,7 @@ const Profile = () => {
     };
 
     fetchCompanyName();
-  }, [authenticated]);
+  }, [recruiterAuthenticated]);
   
   const handleClick2 = (event: any) => {
     setAnchorEl2(event.currentTarget);

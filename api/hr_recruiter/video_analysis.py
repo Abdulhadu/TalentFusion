@@ -42,9 +42,62 @@ def random_job_name():
     return str(temp_name)
 
 # Function to analyze video/audio files uploaded to S3 Bucket and return transcribed speech in json format using the Amazon Transcribe API
-def extract_text(file_name):
+# def extract_text(file_name):
+#     try:
+#         file_path = f"./static/{file_name}"
+#         s3_path = f"{BUCKET_NAME}/{file_name}"
+        
+#         print(f"Uploading file to S3: {file_path} -> s3://{s3_path}")
+#         s3.Bucket(BUCKET_NAME).upload_file(Filename=file_path, Key=file_name)
+#     except Exception as e:
+#         print("Could not fetch data")
+
+#     transcribe = boto3.Session(
+#         region_name=MY_REGION,
+#         aws_access_key_id=AWS_ACCESS_KEY_ID,
+#         aws_secret_access_key=AWS_SECRET_KEY
+#     ).client("transcribe")
+
+#     random_job = random_job_name()  
+#     file_format = "webm"
+#     job_uri = f"s3://{BUCKET_NAME}/"+file_name
+#     job_name = file_name.split('.')[0] + random_job   
+
+#     print(f"Starting transcription job: {job_name} -> {job_uri}")
+#     transcribe.start_transcription_job(
+#         TranscriptionJobName=job_name,
+#         Media={'MediaFileUri': job_uri},
+#         MediaFormat=file_format,
+#         LanguageCode=LANG_CODE
+#     )
+
+#     while True:
+#         status = transcribe.get_transcription_job(TranscriptionJobName=job_name)
+#         time.sleep(15)
+#         if status['TranscriptionJob']['TranscriptionJobStatus'] in ['COMPLETED', 'FAILED']:
+#             break
+
+#     if status['TranscriptionJob']['TranscriptionJobStatus'] == "COMPLETED":
+#         data = pd.read_json(status['TranscriptionJob']['Transcript']['TranscriptFileUri'])
+
+#     elif status['TranscriptionJob']['TranscriptionJobStatus'] == "FAILED":
+#         print("Failed to extract text from audio.....Try again!!")
+
+#     # get the text from json response object
+#     text = data['results'][1][0]['transcript']
+
+#     # Note: You might want to reconsider deleting all objects and object versions in the bucket.
+#     # It's a significant operation and might not be necessary for your use case.
+
+#     s3.Bucket(BUCKET_NAME).objects.all().delete()
+#     s3.Bucket(BUCKET_NAME).object_versions.delete()
+
+#     return text, data
+
+
+def extract_text(file_path, file_name):
     try:
-        file_path = f"./static/{file_name}"
+        file_path = os.path.join(file_path, file_name)
         s3_path = f"{BUCKET_NAME}/{file_name}"
         
         print(f"Uploading file to S3: {file_path} -> s3://{s3_path}")

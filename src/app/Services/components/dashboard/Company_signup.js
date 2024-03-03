@@ -106,7 +106,16 @@ const Company_signup = () => {
             backgroundColor: "white",
           }}
         >
-          <Avatar sx={{ m: 1, bgcolor: "secondary.main" }}></Avatar>
+                <img
+              src="/images/logos/telent-fussion-logo-only.png"
+              alt="Your Avatar"
+              style={{
+                width: 80,
+                height: "auto",
+                marginTop: 15,
+                marginBottom: 15,
+              }}
+            />
           <Typography component="h1" variant="h3">
             Signup to create the company profile
           </Typography>

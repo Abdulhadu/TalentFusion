@@ -1,4 +1,5 @@
-'use client'
+// Recomendation.js
+
 import * as React from "react";
 import Timeline from "@mui/lab/Timeline";
 import TimelineItem from "@mui/lab/TimelineItem";
@@ -10,40 +11,14 @@ import TimelineDot from "@mui/lab/TimelineDot";
 import DashboardCard from "../shared/DashboardCard";
 import Chip from "@mui/material/Chip";
 
-const activities = [
-  {
-    time: "09.50",
-    color: "success.main",
-    text: "Meeting with John",
-  },
-  {
-    time: "09.46",
-    color: "secondary.main",
-    text: "Payment received from John Doe of $385.90",
-  },
-  {
-    time: "09.47",
-    color: "primary.main",
-    text: "Project Meeting",
-  },
-  {
-    time: "09.48",
-    color: "warning.main",
-    text: "New Sale recorded #ML-3467",
-  },
-  {
-    time: "09.49",
-    color: "error.main",
-    text: "Payment was made of $64.95 to Michael Anderson",
-  },
-];
+const Recomendation = ({ data }) => {
+  const { recommendations } = data;
 
-const Recomendation = () => {
   return (
     <DashboardCard
       title={
         <div style={{ display: "flex", alignItems: "center" }}>
-          Recomended Updates
+          Recommended Updates
           <Chip
             sx={{
               pl: "4px",
@@ -53,7 +28,7 @@ const Recomendation = () => {
               color: "#fff",
             }}
             size="small"
-            label="IMPORTAND"
+            label="IMPORTANT"
           />
         </div>
       }
@@ -63,8 +38,9 @@ const Recomendation = () => {
           p: 0,
         }}
       >
-        {activities.map((activity) => (
-          <TimelineItem key={activity.time}>
+        {recommendations.map((recommendation, index) => (
+          <TimelineItem key={index}>
+            {/* You may adjust the following styling as needed */}
             <TimelineOppositeContent
               sx={{
                 fontSize: "12px",
@@ -72,13 +48,14 @@ const Recomendation = () => {
                 flex: "0",
               }}
             >
-              {activity.time}
+              {/* You may adjust the styling as needed */}
+              {/* Display time or any other information if available */}
             </TimelineOppositeContent>
             <TimelineSeparator>
               <TimelineDot
                 variant="outlined"
                 sx={{
-                  borderColor: activity.color,
+                  borderColor: "primary.main", // You may adjust the color as needed
                 }}
               />
               <TimelineConnector />
@@ -89,7 +66,7 @@ const Recomendation = () => {
                 fontSize: "14px",
               }}
             >
-              {activity.text}
+              {recommendation}
             </TimelineContent>
           </TimelineItem>
         ))}

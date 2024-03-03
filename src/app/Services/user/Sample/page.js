@@ -11,32 +11,49 @@ import Progress from "../../components/dashboard/Preogress";
 import Stepper from "@mui/material/Stepper";
 import Step from "@mui/material/Step";
 import StepLabel from "@mui/material/StepLabel";
-import React from "react";
+import React, { useState } from "react";
 
 const page = () => {
-  const steps = [
-    "Add resume For Analyzing",
-    "Add suggestions below to your resume",
-    "Upload resume & rescan",
-  ];
+  const [resumeFile, setResumeFile] = useState(null);
+  const [analysisResult, setAnalysisResult] = useState(null);
+
+  const handleChange = (event) => {
+    setResumeFile(event.target.files[0]);
+  };
+
+  const handleUpload = async (event) => {
+    event.preventDefault(); // Prevent the default form submission
+
+    if (resumeFile) {
+      const formData = new FormData();
+      formData.append("resume", resumeFile);
+
+      try {
+        const response = await fetch(
+          "http://127.0.0.1:5328/user/analyze_resume",
+          {
+            method: "POST",
+            body: formData,
+          }
+        );
+
+        if (response.ok) {
+          const result = await response.json();
+          setAnalysisResult(result);
+        } else {
+          console.error("Error analyzing resume");
+        }
+      } catch (error) {
+        console.error("Error:", error);
+      }
+    } else {
+      console.error("No resume file selected");
+    }
+  };
   return (
     <PageContainer title="Dashboard" description="this is Dashboard">
       <Box mt={3}>
         <Grid container spacing={3}>
-          {/* ------------------------- row 1 ------------------------- */}
-          <Grid item xs={12} lg={12}>
-          <BaseCard 
-     >
-            <Stepper activeStep={1} alternativeLabel>
-              {steps.map((label) => (
-                <Step key={label}>
-                  <StepLabel>{label}</StepLabel>
-                </Step>
-              ))}
-            </Stepper>
-            </BaseCard>
-           
-          </Grid>
           <Grid item xs={12} lg={8}>
             <UserOverview />
           </Grid>

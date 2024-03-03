@@ -1,7 +1,5 @@
-'use client'
+"use client";
 import { React, useState, useEffect } from "react";
-import ForwardToInboxIcon from "@mui/icons-material/ForwardToInbox";
-import CancelIcon from "@mui/icons-material/Cancel";
 import {
   Typography,
   Box,
@@ -11,11 +9,15 @@ import {
   TableHead,
   TableRow,
   Chip,
+  Stack,
   TableContainer,
   IconButton,
   LinearProgress,
 } from "@mui/material";
 import BaseCard from "../shared/DashboardCard";
+import MailOutlineIcon from "@mui/icons-material/MailOutline";
+import ThumbDownAltIcon from "@mui/icons-material/ThumbDownAlt";
+
 
 const AppliedCandidate = () => {
   const [cvData, setCVData] = useState([]);
@@ -141,22 +143,10 @@ const AppliedCandidate = () => {
                   </Typography>
                 </TableCell>
                 <TableCell>
-                  <Typography color="textSecondary" variant="h6"
-                       style={{
-                        whiteSpace: "pre-wrap",
-                        wordWrap: "break-word",
-                        display: "-webkit-box",
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: "vertical",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                      }}>
-                    {cv.degree_level}
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography color="textSecondary" variant="h6"
-                       style={{
+                  <Typography
+                    color="textSecondary"
+                    variant="h6"
+                    style={{
                       whiteSpace: "pre-wrap",
                       wordWrap: "break-word",
                       display: "-webkit-box",
@@ -164,17 +154,37 @@ const AppliedCandidate = () => {
                       WebkitBoxOrient: "vertical",
                       overflow: "hidden",
                       textOverflow: "ellipsis",
-                    }}>
+                    }}
+                  >
+                    {cv.degree_level}
+                  </Typography>
+                </TableCell>
+                <TableCell>
+                  <Typography
+                    color="textSecondary"
+                    variant="h6"
+                    style={{
+                      whiteSpace: "pre-wrap",
+                      wordWrap: "break-word",
+                      display: "-webkit-box",
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: "vertical",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
                     {cv.majors}
                   </Typography>
                 </TableCell>
                 <TableCell align="right">
-                  <IconButton>
-                    <ForwardToInboxIcon fontSize="large" color="success" />
-                  </IconButton>
-                  <IconButton>
-                    <CancelIcon fontSize="large" sx={{ color: "#f44336" }} />
-                  </IconButton>
+                  <Stack direction="row" spacing={2}>
+                    <IconButton color="primary">
+                      <MailOutlineIcon />
+                    </IconButton>
+                    <IconButton color="error">
+                      <ThumbDownAltIcon />
+                    </IconButton>
+                  </Stack>
                 </TableCell>
               </TableRow>
             ))}

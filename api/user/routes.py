@@ -25,7 +25,6 @@ from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.neighbors import NearestNeighbors
 import io,random
-from streamlit_tags import st_tags
 from PIL import Image
 import pymysql
 import pafy

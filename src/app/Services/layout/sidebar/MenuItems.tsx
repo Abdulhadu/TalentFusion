@@ -30,14 +30,6 @@ const Menuitems = [
     icon: IconCloudSearch,
     href: "/Services/user/Job_Recomendation",
   },
-
-
-  {
-    id: uniqueId(),
-    title: "Sample",
-    icon: IconInfoCircle,
-    href: "/Services/user/Sample",
-  },
   {
     id: uniqueId(),
     title: "Job Portal",
