@@ -73,7 +73,7 @@ COMPANY_PSWD = config('company_pswd')
 SECRET_KEY = "python_jwt"
  
 # This is api key for the OPen AI API that is used for question generation 
-# API_KEY = ''
+
 db_config = {
     'host': 'localhost',
     'user': 'root',
@@ -90,11 +90,6 @@ print("MySQL connection established successfully")
 recruiter = Blueprint('recruiter', __name__, url_prefix='/recruiter')
 
  
-# @recruiter.before_app_first_request
-# def configure_celery():
-#     celery.conf.update(recruiter.config)
-    
-    
 # Function to get a connection from the pool
 def get_connection():
     return pool.get_connection()
