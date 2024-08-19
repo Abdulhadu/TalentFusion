@@ -5,8 +5,11 @@ import Paper from "@mui/material/Stack";
 import EmailIcon from "@mui/icons-material/Email";
 import WifiCalling3Icon from "@mui/icons-material/WifiCalling3";
 import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
+<<<<<<< HEAD
 import WorkHistoryIcon from '@mui/icons-material/WorkHistory';
 import PersonSearchIcon from '@mui/icons-material/PersonSearch';
+=======
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
 
 const Interviewer = ({ userData }) => {
   return (
@@ -23,6 +26,7 @@ const Interviewer = ({ userData }) => {
 
       <div className="mt-5">
         <div className="flex items-center mt-6">
+<<<<<<< HEAD
           <WifiCalling3Icon sx={{ color: "#6B7280", fontSize: 18 }} />
           <h2 className="text-gray-700 mt-1 ml-2 font-semibold">Phone No:</h2>
           <p className="text-gray-600 mt-1 ml-2">{userData["Mobile Number"]}</p>
@@ -30,15 +34,26 @@ const Interviewer = ({ userData }) => {
         <div className="flex items-center">
           <EmailIcon  sx={{ color: "#6B7280", fontSize: 18 }} />
           <h2 className="text-gray-700 mt-1 ml-2 font-semibold">Email: </h2>
+=======
+          <EmailIcon sx={{ color: "#6B7280", fontSize: 18 }} />
+          <p className="text-gray-600 mt-1 ml-2">{userData["Mobile Number"]}</p>
+        </div>
+        <div className="flex items-center">
+          <WifiCalling3Icon sx={{ color: "#6B7280", fontSize: 18 }} />
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
           <p className="text-gray-600 mt-1 ml-2">{userData.Email}</p>
         </div>
         <div className="flex items-center">
           <WorkspacePremiumIcon sx={{ color: "#6B7280", fontSize: 18 }} />
+<<<<<<< HEAD
           <h2 className="text-gray-700 mt-1 ml-2 font-semibold">Degree Level: </h2>
+=======
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
           <p className="text-gray-600 mt-1 ml-2">
             {userData.Degree ? userData.Degree : "Not Specified"}
           </p>
         </div>
+<<<<<<< HEAD
         <div className="flex items-center">
           <WorkHistoryIcon sx={{ color: "#6B7280", fontSize: 18 }} />
           <h2 className="text-gray-700 mt-1 ml-2 font-semibold">Work Experience: </h2>
@@ -53,6 +68,8 @@ const Interviewer = ({ userData }) => {
             {userData["Predicted Personality"] }
           </p>
         </div>
+=======
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
       </div>
       <div>
         <div className="mx-auto lg:mt-8 max-w-xs">

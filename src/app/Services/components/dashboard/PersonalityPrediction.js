@@ -3,8 +3,11 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
 import { useAuth } from "../../context/Authcontext";
+<<<<<<< HEAD
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+=======
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
 
 const PersonalityPrediction = () => {
   const { interviewerAuthenticated } = useAuth();
@@ -81,6 +84,7 @@ const PersonalityPrediction = () => {
       );
 
       if (response.ok) {
+<<<<<<< HEAD
         toast.success('Response Recorded Successfully..!', {
           position: "bottom-center",
           autoClose: 2000,
@@ -101,6 +105,12 @@ const PersonalityPrediction = () => {
           draggable: true,
           progress: undefined,
         });
+=======
+        // Handle success (redirect, show success message, etc.)
+        router.push("/Interview");
+      } else {
+        // Handle error (show error message, etc.)
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
         console.error("Prediction submission failed");
       }
     } catch (error) {
@@ -110,6 +120,7 @@ const PersonalityPrediction = () => {
 
   return (
     <>
+<<<<<<< HEAD
       <ToastContainer
           position="bottom-center"
           autoClose={5006}
@@ -121,6 +132,8 @@ const PersonalityPrediction = () => {
           draggable
           pauseOnHover
         />
+=======
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
       <div className="w-full h-auto overflow-scroll block bg-gradient-to-r from-blue-100 via-purple-100 to-pink-100 p-4 flex items-center justify-center">
         <div className="bg-white py-6 px-10 sm:max-w-2xl w-full ">
           <div className="sm:text-3xl text-2xl font-semibold text-center text-sky-600  mb-12">

@@ -55,7 +55,11 @@ const Page = ({ params }) => {
           {userData && (
             <BaseCard title={`Tone Analysis for User ID ${userID}`}>
               <Image
+<<<<<<< HEAD
                  src={`/static${userData?.toneAnalysisImage}?${new Date().getTime()}`}
+=======
+                src={`/static${userData?.toneAnalysisImage}`}
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
                 alt={`/static${userData?.toneAnalysisImage}`}
                 width={1000} 
                 height={500}
@@ -69,7 +73,11 @@ const Page = ({ params }) => {
               title={`Face Emotional Recognition for User ID ${userID}`}
             >
               <Image
+<<<<<<< HEAD
                 src={`/static${userData?.ferOutputImage}?${new Date().getTime()}`}
+=======
+                src={`/static${userData?.ferOutputImage}`}
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
                 alt="Fer output report"
                 width={1000}
                 height={500}

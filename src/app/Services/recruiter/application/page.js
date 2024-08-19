@@ -8,7 +8,10 @@ import {
   Button,
 } from "@mui/material";
 import BaseCard from "@/app/Services/components/shared/BaseCard";
+<<<<<<< HEAD
 import PrivateRoute from "../../components/dashboard/PrivateRoute";
+=======
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
 
 
 const Page = () => {
@@ -61,8 +64,11 @@ const Page = () => {
   };
 
   return (
+<<<<<<< HEAD
     <>
 <PrivateRoute userType="recruiter">
+=======
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
     <Grid container spacing={3}>
       <Grid item xs={12} lg={12}>
         <BaseCard title="Post Job Vacancy">
@@ -119,8 +125,11 @@ const Page = () => {
         </Grid>
       )}
     </Grid>
+<<<<<<< HEAD
     </PrivateRoute>
     </>
+=======
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
   );
 };
 

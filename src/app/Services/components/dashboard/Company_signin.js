@@ -23,9 +23,12 @@ import IconButton from "@mui/material/IconButton";
 import InputLabel from "@mui/material/InputLabel";
 import FormControl from "@mui/material/FormControl";
 import { AuthProvider, useAuth } from '../../context/Authcontext';
+<<<<<<< HEAD
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
+=======
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
 
 const Company_signin = () => {
   const [showPassword, setShowPassword] = React.useState(false);
@@ -65,6 +68,7 @@ const Company_signin = () => {
         const token = data.token;
         console.log("token is :" , token )
 
+<<<<<<< HEAD
         toast.success('You are succesfully Signin to TelentFussion..!', {
           position: "bottom-center",
           autoClose: 2000,
@@ -75,12 +79,18 @@ const Company_signin = () => {
           progress: undefined,
         });
 
+=======
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
         // Set the token in the cookie
         login(token);
 
 
         console.log("Login Successful");
+<<<<<<< HEAD
         router.push("/Services/recruiter/dashboard")
+=======
+        router.push("/Services/")
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
       } else {
         console.error("Login failed");
       }
@@ -90,6 +100,7 @@ const Company_signin = () => {
   };
   return (
     <ThemeProvider theme={baselightTheme}>
+<<<<<<< HEAD
       <ToastContainer
           position="bottom-center"
           autoClose={5006}
@@ -101,6 +112,8 @@ const Company_signin = () => {
           draggable
           pauseOnHover
         />
+=======
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
       <Container
         component="main"
         maxWidth="xs"
@@ -135,7 +148,11 @@ const Company_signin = () => {
                 marginBottom: 15,
               }}
             />
+<<<<<<< HEAD
           <Typography component="h1" variant="h3" sx={{ textAlign: "center" }}>
+=======
+          <Typography component="h1" variant="h3">
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
             Sign in for Recruiter
           </Typography>
 

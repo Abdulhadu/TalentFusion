@@ -15,15 +15,21 @@ import {
 } from "@mui/material";
 import MailOutlineIcon from "@mui/icons-material/MailOutline";
 import ThumbDownAltIcon from "@mui/icons-material/ThumbDownAlt";
+<<<<<<< HEAD
 import PrivateRoute from "../../components/dashboard/PrivateRoute";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+=======
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
 
 // UserCard component
 const UserCard = ({ candidate }) => {
   const [evaluationReady, setEvaluationReady] = useState(false);
+<<<<<<< HEAD
   const [emailSent, setEmailSent] = useState(false);
 
+=======
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
   useEffect(() => {
     const checkEvaluationData = async () => {
       try {
@@ -53,6 +59,7 @@ const UserCard = ({ candidate }) => {
     checkEvaluationData();
   }, [candidate]);
 
+<<<<<<< HEAD
   const handleButtonClick = async (action) => {
     try {
       const apiEndpoint =
@@ -135,6 +142,45 @@ const UserCard = ({ candidate }) => {
         </CardContent>
       </Card>
     </PrivateRoute>
+=======
+  return (
+    <Card>
+      <CardContent>
+        <Typography variant="h6">{candidate.name}</Typography>
+        <Typography variant="body2" color="textSecondary">
+          {candidate.email}
+        </Typography>
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
+          mt={3}
+        >
+          <Button
+            href={`/Services/recruiter/ai_interview/${candidate.ID}`}
+            passHref
+            variant="contained"
+            color="primary"
+            disabled={!evaluationReady}
+          >
+            Evaluate Now
+          </Button>
+          <Stack direction="row" spacing={2}>
+            <Tooltip title="Accept All">
+            <IconButton color="primary">
+              <MailOutlineIcon />
+            </IconButton>
+            </Tooltip>
+            <Tooltip title="Reject All">
+            <IconButton color="error">
+              <ThumbDownAltIcon />
+            </IconButton>
+            </Tooltip>
+          </Stack>
+        </Stack>
+      </CardContent>
+    </Card>
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
   );
 };
 
@@ -143,6 +189,10 @@ const DashboardPage = () => {
   const [candidates, setCandidates] = useState([]);
   const [loading, setLoading] = useState(true);
 
+<<<<<<< HEAD
+=======
+  // Fetch shortlisted candidates data
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -177,10 +227,17 @@ const DashboardPage = () => {
       <Box
         sx={{
           width: "100%",
+<<<<<<< HEAD
           height: "100vh",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+=======
+          height: "100vh", // Make the box cover the entire viewport height
+          display: "flex",
+          alignItems: "center", // Center items vertically
+          justifyContent: "center", // Center items horizontally
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
         }}
       >
         <CircularProgress color="primary" variant="indeterminate" />
@@ -190,6 +247,7 @@ const DashboardPage = () => {
 
   return (
     <Grid container spacing={2}>
+<<<<<<< HEAD
       <ToastContainer
         position="bottom-center"
         autoClose={2000}
@@ -201,6 +259,8 @@ const DashboardPage = () => {
         draggable
         pauseOnHover
       />
+=======
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
       {candidates.map((candidate) => (
         <Grid key={candidate.id} item xs={12} sm={6} md={4}>
           <UserCard candidate={candidate} />

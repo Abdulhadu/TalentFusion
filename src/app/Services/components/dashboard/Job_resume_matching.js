@@ -13,8 +13,13 @@ import {
   LinearProgress,
 } from "@mui/material";
 import BaseCard from "../shared/DashboardCard";
+<<<<<<< HEAD
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+=======
+
+
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
 const Job_resume_matching = () => {
   const [cvData, setCVData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -32,11 +37,17 @@ const Job_resume_matching = () => {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
         const data = await response.json();
+<<<<<<< HEAD
         toast.success('Resume Job Matching Completed Successfully..!');
         setCVData(data);
       } catch (error) {
         console.error("Error fetching CV data:", error.message);
         toast.error("Failed to fetch matching results. Please try again later.");
+=======
+        setCVData(data);
+      } catch (error) {
+        console.error("Error fetching CV data:", error.message);
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
       } finally {
         setLoading(false);
       }
@@ -55,6 +66,7 @@ const Job_resume_matching = () => {
   return (
 
     <>
+<<<<<<< HEAD
     <ToastContainer
           position="bottom-center"
           autoClose={2000}
@@ -66,6 +78,8 @@ const Job_resume_matching = () => {
           draggable
           pauseOnHover
         />
+=======
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
       <BaseCard title="Job & Resume Application Matching Stats">
         <TableContainer
           sx={{

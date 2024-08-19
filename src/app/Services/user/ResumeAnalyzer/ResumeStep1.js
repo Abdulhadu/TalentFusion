@@ -6,8 +6,11 @@ import LinearProgress, {
   linearProgressClasses,
 } from "@mui/material/LinearProgress";
 import { Paper, Grid, Stack, TextField, Button } from "@mui/material";
+<<<<<<< HEAD
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+=======
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
 
 import BaseCard from "@/app/Services/components/shared/BaseCard";
 const LoadingBar = ({ progress }) => {
@@ -89,12 +92,24 @@ const ResumeStep1 = ({ onSubmit }) => {
 
         if (response.ok) {
           const result = await response.json();
+<<<<<<< HEAD
           setAnalysisResult(result);
           onSubmit(result);
           toast.success('Your Resume Data are Analysed successfully..!');
         } else {
           console.error("Error analyzing resume");
           toast.error('Error analyzing resume. PLease try again..!');
+=======
+          //   setTimeout(() => {
+          //     setLoading(false);
+          //     setAnalysisResult(result);
+          //     onSubmit(result);
+          //   }, 2000);
+          setAnalysisResult(result);
+          onSubmit(result);
+        } else {
+          console.error("Error analyzing resume");
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
         }
       } catch (error) {
         console.error("Error:", error);

@@ -5,8 +5,11 @@ import EmailIcon from "@mui/icons-material/Email";
 import AddLocationAltIcon from "@mui/icons-material/AddLocationAlt";
 import PaidIcon from "@mui/icons-material/Paid";
 import Company_details from "@/app/Services/components/dashboard/company_details"
+<<<<<<< HEAD
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+=======
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
 
 const Jobapplication = () => {
   const [resumeFile, setResumeFile] = useState(null);
@@ -34,6 +37,7 @@ const Jobapplication = () => {
 
         if (response.ok) {
           const result = await response.json();
+<<<<<<< HEAD
           toast.success('Your documents are submitted successfully..!', {
             position: "bottom-center",
             autoClose: 2000,
@@ -45,6 +49,9 @@ const Jobapplication = () => {
           });
           setAnalysisResult(result);
 
+=======
+          setAnalysisResult(result);
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
         } else {
           console.error("Error analyzing resume");
         }
@@ -58,6 +65,7 @@ const Jobapplication = () => {
 
   return (
     <>
+<<<<<<< HEAD
      <ToastContainer
           position="bottom-center"
           autoClose={5006}
@@ -69,6 +77,8 @@ const Jobapplication = () => {
           draggable
           pauseOnHover
         />
+=======
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
       <div>
        <Company_details/>
       </div>
@@ -94,7 +104,11 @@ const Jobapplication = () => {
             />
             <button
               type="submit"
+<<<<<<< HEAD
               className=" mx-auto mt-5 max-w-xs nline-flex items-center h-10 w-full px-5 text-indigo-100 transition-colors duration-150 bg-teal-500 rounded-lg focus:shadow-outline hover:bg-teal-600"
+=======
+              className=" mx-auto lg:mt-5 max-w-xs nline-flex items-center h-10 w-full px-5 text-indigo-100 transition-colors duration-150 bg-teal-500 rounded-lg focus:shadow-outline hover:bg-teal-600"
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
             >
               <span className="m-auto text-center text-white text-lg font-medium">
                 Submit Your CV{" "}

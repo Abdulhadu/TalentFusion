@@ -15,6 +15,7 @@ import BusinessIcon from "@mui/icons-material/Business";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import ThumbUpIcon from "@mui/icons-material/ThumbUp";
 
+<<<<<<< HEAD
 const cleanUrl = (url) => {
   // Remove any unwanted characters or HTML entities
   try {
@@ -27,6 +28,8 @@ const cleanUrl = (url) => {
   }
 };
 
+=======
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
 const JobListing = ({ jobData }) => {
   return (
     <Grid container spacing={2}>
@@ -45,7 +48,11 @@ const JobListing = ({ jobData }) => {
                     <BusinessIcon fontSize="medium" color="secondary" />
                     <Typography variant="h2" component="div" ml={1}>
                       <Link
+<<<<<<< HEAD
                         href={cleanUrl(job.url)}
+=======
+                        href={job.url}
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
                         color="textPrimary"
                         target="_blank"
                         underline="hover"
@@ -71,7 +78,11 @@ const JobListing = ({ jobData }) => {
                     mt={3}
                   >
                     <Link
+<<<<<<< HEAD
                       href={cleanUrl(job.url)}
+=======
+                      href={job.url}
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
                       color="white"
                       target="_blank"
                       underline="none"

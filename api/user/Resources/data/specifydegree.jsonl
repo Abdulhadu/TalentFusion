@@ -81,6 +81,7 @@
 {"label": "DEGREE|Bachelors-in-Pharmacy", "pattern": [{"LOWER": "bachelors in pharmacy"}]}
 {"label": "DEGREE|Doctor-of-Medicine", "pattern": [{"LOWER": "doctor of medicine"}]}
 {"label": "DEGREE|Doctor-of-Pharmacy", "pattern": [{"LOWER": "doctor of pharmacy"}]}
+<<<<<<< HEAD
 {"label": "DEGREE|Computer-Science-Undergraduate","pattern": [{"LOWER": "computer science undergraduate"}]}
 {"label": "DEGREE|Electrical-Engineering-Undergraduate","pattern": [{"LOWER": "electrical engineering undergraduate"}]}
 {"label": "DEGREE|Mechanical-Engineering-Undergraduate","pattern": [{"LOWER": "mechanical engineering undergraduate"}]}
@@ -101,6 +102,9 @@
 {"label": "DEGREE|English-Undergraduate","pattern": [{"LOWER": "english undergraduate"}]}
 {"label": "DEGREE|History-Undergraduate","pattern": [{"LOWER": "history undergraduate"}]}
 {"label": "DEGREE|Political-Science-Undergraduate","pattern": [{"LOWER": "political science undergraduate"}]}
+=======
+{"label": "DEGREE|Bachelors-in-Computer-Science", "pattern": [{"LOWER": "bachelors in computer science"}]}
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
 {"label": "DEGREE|Bachelors-in-Information-Technology", "pattern": [{"LOWER": "bachelors in information technology"}]}
 {"label": "DEGREE|Bachelors-in-Electrical-Engineering", "pattern": [{"LOWER": "bachelors in electrical engineering"}]}
 {"label": "DEGREE|Master-of-Science-in-Computer-Science", "pattern": [{"LOWER": "master of science in computer science"}]}
@@ -133,6 +137,7 @@
 {"label": "DEGREE|Master-of-Economics", "pattern": [{"LOWER": "master of economics"}]}
 {"label": "DEGREE|Master-of-Political-Science", "pattern": [{"LOWER": "master of political science"}]}
 {"label": "DEGREE|Master-of-Psychology", "pattern": [{"LOWER": "master of psychology"}]}
+<<<<<<< HEAD
 {"label": "DEGREE|Computer-Science-Undergraduate","pattern": [{"LOWER": "computer science undergraduate"}]}
 {"label": "DEGREE|Undergraduate", "pattern": [{"LOWER": "undergraduate"}]}
 {"label": "DEGREE|Bachelor-Undergraduate", "pattern": [{"LOWER": "bachelor undergraduate"}]}
@@ -165,4 +170,7 @@
 {"label": "DEGREE|English-Undergraduate","pattern": [{"LOWER": "english undergraduate"}]}
 {"label": "DEGREE|History-Undergraduate","pattern": [{"LOWER": "history undergraduate"}]}
 {"label": "DEGREE|Political-Science-Undergraduate","pattern": [{"LOWER": "political science undergraduate"}]}
+=======
+
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
 

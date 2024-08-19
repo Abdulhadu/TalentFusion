@@ -22,8 +22,11 @@ import InputAdornment from "@mui/material/InputAdornment";
 import IconButton from "@mui/material/IconButton";
 import InputLabel from "@mui/material/InputLabel";
 import FormControl from "@mui/material/FormControl";
+<<<<<<< HEAD
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+=======
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
 
 const Company_signup = () => {
   const [showPassword, setShowPassword] = React.useState(false);
@@ -70,6 +73,7 @@ const Company_signup = () => {
       });
       const responseData = await response.json();
 
+<<<<<<< HEAD
       toast.success('You are succesfully Registered to TelentFussion..!', {
         position: "bottom-center",
         autoClose: 2000,
@@ -84,6 +88,12 @@ const Company_signup = () => {
 
       if (responseData.status === "ok") {
         router.push("/Services/recruiter/c_signin");
+=======
+      console.log(responseData);
+
+      if (responseData.status === "ok") {
+        router.push("/Interview/Personality");
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
       } else {
         console.error("Error message:", responseData.message);
       }
@@ -94,6 +104,7 @@ const Company_signup = () => {
 
   return (
     <ThemeProvider theme={baselightTheme}>
+<<<<<<< HEAD
       <ToastContainer
           position="bottom-center"
           autoClose={5006}
@@ -105,6 +116,8 @@ const Company_signup = () => {
           draggable
           pauseOnHover
         />
+=======
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
       <Container
         component="main"
         maxWidth="sm"
@@ -139,7 +152,11 @@ const Company_signup = () => {
                 marginBottom: 15,
               }}
             />
+<<<<<<< HEAD
           <Typography component="h1" variant="h3" sx={{ textAlign: "center" }}>
+=======
+          <Typography component="h1" variant="h3">
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
             Signup to create the company profile
           </Typography>
           <Typography
@@ -181,7 +198,10 @@ const Company_signup = () => {
                   <OutlinedInput
                     id="outlined-adornment-password"
                     name="password"
+<<<<<<< HEAD
                     fullWidth
+=======
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
                     value={formData.password}
                     onChange={handleChange}
                     type={showPassword ? "text" : "password"}
@@ -209,7 +229,10 @@ const Company_signup = () => {
                   <OutlinedInput
                     id="outlined-adornment-password"
                     name="cpassword"
+<<<<<<< HEAD
                     fullWidth
+=======
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
                     value={formData.cpassword}
                     onChange={handleChange}
                     type={showPassword ? "text" : "password"}

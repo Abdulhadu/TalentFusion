@@ -1,4 +1,5 @@
 "use strict";
+<<<<<<< HEAD
 let mediaRecorder;
 let recordedBlobs;
 let count = 1;
@@ -9,6 +10,22 @@ const questions = await fetchQuestionsFromBackend();
 const Ending = [
   "Thank you for your time and thoughtful responses. We appreciate your interest in joining our team. We will be in touch regarding the next steps in the hiring process.",
 ];
+=======
+
+/* globals MediaRecorder */
+
+let mediaRecorder;
+let recordedBlobs;
+let count = 1;
+
+const Starting = ["Thank you for coming in today. I am a TelentFussion AI Interviewer Let's dive right in. I'd like to start by asking you about your question reguarding you skills. Click the Record button to start the Test. We also Analyze your Tone and Face Expression"];
+const questions = [
+  "Question 1: Tell something about yourself",
+  "Question 2: Why should we hire you?",
+  "Question 3: Where Do You See Yourself Five Years From Now?",
+];
+const Ending = ["Thank you for your time and thoughtful responses. We appreciate your interest in joining our team. We will be in touch regarding the next steps in the hiring process."];
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
 const errorMsgElement = document.querySelector("span#errorMsg");
 const recordedVideo = document.querySelector("video#recorded");
 const recordButton = document.querySelector("button#record");
@@ -18,6 +35,7 @@ const time = [];
 let userStream;
 let filedat;
 const numrec = [];
+<<<<<<< HEAD
 import { jwtDecode } from "jwt-decode";
 import lottie from "lottie-web";
 import animationData from "/public/Animation - 1710093016864";
@@ -54,6 +72,15 @@ function speakText(text) {
   utterance.voice = speechSynthesis
     .getVoices()
     .find((voice) => voice.name === "Google US English");
+=======
+import ThankYou from "../src/app/Services/components/dashboard/ThankYou";
+import { jwtDecode } from "jwt-decode";
+// import { SpeechSynthesisUtterance } from 'web-speech-api';
+// Function to speak a given text
+function speakText(text) {
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.voice = speechSynthesis.getVoices().find(voice => voice.name === 'Google US English');
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
   window.speechSynthesis.speak(utterance);
 }
 
@@ -77,6 +104,7 @@ function speakText(text) {
 //     mediaRecorder.start();
 //   }
 // });
+<<<<<<< HEAD
 async function fetchQuestionsFromBackend() {
   try {
     const response = await fetch(`http://127.0.0.1:5328/recruiter/generate_questions`, {
@@ -89,6 +117,8 @@ async function fetchQuestionsFromBackend() {
     return [];
   }
 }
+=======
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
 
 nextButton.addEventListener("click", async () => {
   // Button for next question to be asked
@@ -97,8 +127,11 @@ nextButton.addEventListener("click", async () => {
     mediaRecorder.stop();
     time.push(Date());
     count++;
+<<<<<<< HEAD
 
     clearAnimation();
+=======
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
     // Speak the next question
     await speakText(questions[count - 1]);
     document.getElementById("question").innerText = questions[count - 1];
@@ -106,8 +139,13 @@ nextButton.addEventListener("click", async () => {
     speakText("Recording will start shortly."); // Provide a cue for the user
     const utterance = new SpeechSynthesisUtterance("");
     utterance.onend = () => {
+<<<<<<< HEAD
       mediaRecorder.start();
       displayAnimation();
+=======
+      
+      mediaRecorder.start();
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
     };
     window.speechSynthesis.speak(utterance);
   } else {
@@ -116,12 +154,19 @@ nextButton.addEventListener("click", async () => {
     nextButton.style.display = "none";
     // Stop recording before speaking the ending message
     mediaRecorder.stop();
+<<<<<<< HEAD
 
     clearAnimation();
+=======
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
     // Speak the ending message
     await speakText(Ending[0]);
     document.getElementById("question").innerText = Ending[0];
     // Start recording after the speech ends
+<<<<<<< HEAD
+=======
+    speakText("Recording will start shortly."); // Provide a cue for the user
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
     const utterance = new SpeechSynthesisUtterance("");
     utterance.onend = () => {
       mediaRecorder.start();
@@ -133,6 +178,7 @@ nextButton.addEventListener("click", async () => {
 
 recordButton.addEventListener("click", async () => {
   // to start the camera for recording
+<<<<<<< HEAD
 
 
   console.log(questions)
@@ -146,6 +192,11 @@ recordButton.addEventListener("click", async () => {
     document.getElementById("question").innerText = questions[0];
 
     speakText("Recording will start shortly.");
+=======
+  
+  if (recordButton.textContent === "Record") {
+    await speakText(questions[0]);
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
     const utterance = new SpeechSynthesisUtterance("");
     utterance.onend = () => {
       time.push(Date());
@@ -171,23 +222,41 @@ recordButton.addEventListener("click", async () => {
 // });
 
 function decodeTokenAndGetUserId() {
+<<<<<<< HEAD
   const authToken = localStorage.getItem("jwtToken");
 
   if (!authToken) {
     throw new Error("Authentication token not found");
+=======
+  const authToken = localStorage.getItem('jwtToken');
+
+  if (!authToken) {
+    throw new Error('Authentication token not found');
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
   }
 
   // Replace the following line with your actual JWT decoding logic
   const decodedToken = jwtDecode(authToken);
 
   if (!decodedToken || !decodedToken.user_id) {
+<<<<<<< HEAD
     throw new Error("Failed to extract user_id from the token");
+=======
+    throw new Error('Failed to extract user_id from the token');
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
   }
 
   return decodedToken.user_id;
 }
 
+<<<<<<< HEAD
 downloadButton.addEventListener("click", () => {
+=======
+
+
+downloadButton.addEventListener("click", () => {
+
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
   const userId = decodeTokenAndGetUserId();
 
   // send data to server
@@ -195,20 +264,29 @@ downloadButton.addEventListener("click", () => {
   recordedBlobs.forEach((blob, index) => {
     const arr = [];
     arr.push(blob);
+<<<<<<< HEAD
     if (index < questions.length) {
+=======
+    if (index < 3) {
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
       const blobdata = new Blob(arr, { type: "video/webm" });
       data.append(`question${index + 1}`, blobdata);
     }
   });
+<<<<<<< HEAD
   data.append("user_id", userId);
   // Include the generated questions in the request payload
   data.append("questions", JSON.stringify(questions));
   const url1 = `/recorded`;
+=======
+  data.append('user_id', userId);
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
 
   fetch(`http://127.0.0.1:5328/recruiter/analysis`, {
     method: "POST",
     body: data,
   })
+<<<<<<< HEAD
     .then((response) => {
       console.log(response);
       return response.json(); // Assuming the response is in JSON format
@@ -231,6 +309,26 @@ downloadButton.addEventListener("click", () => {
       alert("Failed to communicate with the server.");
     });
 });
+=======
+  .then(response => {
+    console.log(response);
+    return response.json(); // Assuming the response is in JSON format
+  })
+   .then(data => {
+    console.log(data);
+    if (data.success) {
+      <ThankYou text="Thank you for the interview. Your interview is successfully taken by our AI system. You'll hear from us after a while via email." />;
+    } else {
+      alert("Failed to record interview.");
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert("Failed to communicate with the server.");
+  });
+});
+   
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
 
 function handleDataAvailable(event) {
   // push data to blob or video data
@@ -241,6 +339,10 @@ function handleDataAvailable(event) {
 }
 function showNextBtn() {
   document.getElementById("next").style.display = "block";
+<<<<<<< HEAD
+=======
+  document.getElementById("question").innerText = questions[0];
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
   recordButton.disabled = true;
 }
 function startRecording() {
@@ -272,7 +374,10 @@ function startRecording() {
 
   mediaRecorder.ondataavailable = handleDataAvailable;
   mediaRecorder.start();
+<<<<<<< HEAD
   displayAnimation();
+=======
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
   console.log("MediaRecorder started", mediaRecorder);
 }
 

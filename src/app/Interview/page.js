@@ -1,5 +1,10 @@
 "use client";
 import React from "react";
+<<<<<<< HEAD
+=======
+import { Paper, Grid, Stack, TextField, Button } from "@mui/material";
+import BaseCard from "@/app/Services/components/shared/BaseCard";
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
 import VideoRecording from "@/app/Services/components/dashboard/VideoRecording";
 
 const page = () => {

@@ -16,8 +16,11 @@ import Container from "@mui/material/Container";
 import { baselightTheme } from "../../../../utils/theme/DefaultColors";
 import { ThemeProvider } from "@mui/material/styles";
 import { AuthProvider, useAuth } from "../../context/Authcontext";
+<<<<<<< HEAD
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+=======
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
 
 const Signup = () => {
   const router = useRouter();
@@ -50,6 +53,7 @@ const Signup = () => {
         const data = await response.json();
         const token = data.token;
         console.log("token is :", token);
+<<<<<<< HEAD
         toast.success("You are succesfully Signin For Interview..!", {
           position: "bottom-center",
           autoClose: 2000,
@@ -59,6 +63,8 @@ const Signup = () => {
           draggable: true,
           progress: undefined,
         });
+=======
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
 
         // Set the token in the cookie
         login(token);
@@ -67,6 +73,7 @@ const Signup = () => {
         router.push("/Interview/Personality");
       } else {
         console.error("Login failed");
+<<<<<<< HEAD
         toast.error(
           "Login Failed. Please check your credentials and try again..!",
           {
@@ -79,6 +86,8 @@ const Signup = () => {
             progress: undefined,
           }
         );
+=======
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
       }
     } catch (error) {
       console.error("Error:", error);
@@ -87,6 +96,7 @@ const Signup = () => {
 
   return (
     <ThemeProvider theme={baselightTheme}>
+<<<<<<< HEAD
       <ToastContainer
         position="bottom-center"
         autoClose={5006}
@@ -113,6 +123,24 @@ const Signup = () => {
            <Grid item xs={12} sm={6}>
           <Box sx={{ px: 5, py: 5 }}>
             <Box sx={{ width: "auto", height: "auto" }}>
+=======
+      <Container component="main" maxWidth="lg">
+        <CssBaseline />
+
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            marginTop: 8,
+            py: 5,
+            backgroundColor: "white",
+            boxShadow: 15,
+            borderRadius: 5,
+          }}
+        >
+          <Box sx={{ px: 5, py: 5 }}>
+            <Box sx={{ width: 450, height: "auto" }}>
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
               <img
                 src="/images/profile/user-1.jpg"
                 alt="Your Avatar"
@@ -125,8 +153,11 @@ const Signup = () => {
               />
             </Box>
           </Box>
+<<<<<<< HEAD
           </Grid>
           <Grid item xs={12} sm={6}>
+=======
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
           <Box
             sx={{
               display: "flex",
@@ -146,7 +177,11 @@ const Signup = () => {
                 marginBottom: 15,
               }}
             />
+<<<<<<< HEAD
             <Typography component="h1" variant="h2" sx={{ mt: 3 , textAlign: "center" }}>
+=======
+            <Typography component="h1" variant="h2" sx={{ mt: 3 }}>
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
               Welcome User For Interview
             </Typography>
             <Typography
@@ -207,9 +242,13 @@ const Signup = () => {
               </Grid>
             </Box>
           </Box>
+<<<<<<< HEAD
           </Grid>
       
         </Grid>
+=======
+        </Box>
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
       </Container>
     </ThemeProvider>
   );

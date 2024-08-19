@@ -8,7 +8,10 @@ import boto3
 from textblob import TextBlob
 import spacy
 from decouple import config
+<<<<<<< HEAD
 import logging
+=======
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
 
 # Accessing the environment variables stored in .env file
 AWS_ACCESS_KEY_ID = config('aws_access_key_id')
@@ -96,6 +99,7 @@ def random_job_name():
 #     return text, data
 
 
+<<<<<<< HEAD
 
 # ///////////////////////My WWriten Code////////////////////////////
 
@@ -154,16 +158,25 @@ def random_job_name():
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+=======
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
 def extract_text(file_path, file_name):
     try:
         file_path = os.path.join(file_path, file_name)
         s3_path = f"{BUCKET_NAME}/{file_name}"
         
+<<<<<<< HEAD
         logging.info(f"Uploading file to S3: {file_path} -> s3://{s3_path}")
         s3.Bucket(BUCKET_NAME).upload_file(Filename=file_path, Key=file_name)
     except Exception as e:
         logging.error(f"Could not fetch data: {e}")
         return "", {}
+=======
+        print(f"Uploading file to S3: {file_path} -> s3://{s3_path}")
+        s3.Bucket(BUCKET_NAME).upload_file(Filename=file_path, Key=file_name)
+    except Exception as e:
+        print("Could not fetch data")
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
 
     transcribe = boto3.Session(
         region_name=MY_REGION,
@@ -173,10 +186,17 @@ def extract_text(file_path, file_name):
 
     random_job = random_job_name()  
     file_format = "webm"
+<<<<<<< HEAD
     job_uri = f"s3://{BUCKET_NAME}/{file_name}"
     job_name = file_name.split('.')[0] + random_job   
 
     logging.info(f"Starting transcription job: {job_name} -> {job_uri}")
+=======
+    job_uri = f"s3://{BUCKET_NAME}/"+file_name
+    job_name = file_name.split('.')[0] + random_job   
+
+    print(f"Starting transcription job: {job_name} -> {job_uri}")
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
     transcribe.start_transcription_job(
         TranscriptionJobName=job_name,
         Media={'MediaFileUri': job_uri},
@@ -191,6 +211,7 @@ def extract_text(file_path, file_name):
             break
 
     if status['TranscriptionJob']['TranscriptionJobStatus'] == "COMPLETED":
+<<<<<<< HEAD
         try:
             data = pd.read_json(status['TranscriptionJob']['Transcript']['TranscriptFileUri'])
             logging.info("Transcription data received.")
@@ -210,6 +231,19 @@ def extract_text(file_path, file_name):
         return "", {}
 
     # Note: Consider the implications of deleting all objects and object versions in the bucket.
+=======
+        data = pd.read_json(status['TranscriptionJob']['Transcript']['TranscriptFileUri'])
+
+    elif status['TranscriptionJob']['TranscriptionJobStatus'] == "FAILED":
+        print("Failed to extract text from audio.....Try again!!")
+
+    # get the text from json response object
+    text = data['results'][1][0]['transcript']
+
+    # Note: You might want to reconsider deleting all objects and object versions in the bucket.
+    # It's a significant operation and might not be necessary for your use case.
+
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
     s3.Bucket(BUCKET_NAME).objects.all().delete()
     s3.Bucket(BUCKET_NAME).object_versions.delete()
 
@@ -233,6 +267,7 @@ def analyze_tone(text):
 
     # Calculate TextBlob sentiment score
     sentiment_score = blob.sentiment.polarity
+<<<<<<< HEAD
     
     
     if sentiment_score == 0.0:
@@ -250,6 +285,18 @@ def analyze_tone(text):
     else:
         emotion_category = 'Fear'
     
+=======
+
+    # Define emotion categories based on the sentiment score
+    if sentiment_score > 0:
+       emotion_category = 'Joy'
+    elif sentiment_score < 0:
+        
+       emotion_category = 'Sorrow'
+    else:
+       emotion_category = 'Neutral'
+
+>>>>>>> 2070008ba3f8d7c09ac13fc2c4f92b0dfd443131
     # Create a response format similar to the tone_analyzer.tone output
     res = {
         'document_tone': {
