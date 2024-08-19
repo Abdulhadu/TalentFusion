@@ -13,8 +13,8 @@ import {
   LinearProgress,
 } from "@mui/material";
 import BaseCard from "../shared/DashboardCard";
-
-
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 const Job_resume_matching = () => {
   const [cvData, setCVData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -32,9 +32,11 @@ const Job_resume_matching = () => {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
         const data = await response.json();
+        toast.success('Resume Job Matching Completed Successfully..!');
         setCVData(data);
       } catch (error) {
         console.error("Error fetching CV data:", error.message);
+        toast.error("Failed to fetch matching results. Please try again later.");
       } finally {
         setLoading(false);
       }
@@ -53,6 +55,17 @@ const Job_resume_matching = () => {
   return (
 
     <>
+    <ToastContainer
+          position="bottom-center"
+          autoClose={2000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+        />
       <BaseCard title="Job & Resume Application Matching Stats">
         <TableContainer
           sx={{

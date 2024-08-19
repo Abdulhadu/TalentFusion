@@ -23,6 +23,9 @@ import IconButton from "@mui/material/IconButton";
 import InputLabel from "@mui/material/InputLabel";
 import FormControl from "@mui/material/FormControl";
 import { AuthProvider, useAuth } from '../../context/Authcontext';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 
 const Company_signin = () => {
   const [showPassword, setShowPassword] = React.useState(false);
@@ -62,12 +65,22 @@ const Company_signin = () => {
         const token = data.token;
         console.log("token is :" , token )
 
+        toast.success('You are succesfully Signin to TelentFussion..!', {
+          position: "bottom-center",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+
         // Set the token in the cookie
         login(token);
 
 
         console.log("Login Successful");
-        router.push("/Services/")
+        router.push("/Services/recruiter/dashboard")
       } else {
         console.error("Login failed");
       }
@@ -77,6 +90,17 @@ const Company_signin = () => {
   };
   return (
     <ThemeProvider theme={baselightTheme}>
+      <ToastContainer
+          position="bottom-center"
+          autoClose={5006}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+        />
       <Container
         component="main"
         maxWidth="xs"
@@ -111,7 +135,7 @@ const Company_signin = () => {
                 marginBottom: 15,
               }}
             />
-          <Typography component="h1" variant="h3">
+          <Typography component="h1" variant="h3" sx={{ textAlign: "center" }}>
             Sign in for Recruiter
           </Typography>
 

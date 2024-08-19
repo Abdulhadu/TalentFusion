@@ -28,6 +28,8 @@
     "eslint-config-next": "13.4.3",
     "jwt-decode": "^4.0.0",
     "lodash": "^4.17.21",
+    "lottie-react-web": "^2.2.2",
+    "lottie-web": "^5.12.2",
     "materialize-tags": "^1.2.3",
     "next": "13.4.12",
     "react": "18.2.0",

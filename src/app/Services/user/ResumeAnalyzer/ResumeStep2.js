@@ -5,8 +5,12 @@ import Recomendation from "@/app/Services/components/dashboard/Recomendation";
 import UserOverview from "@/app/Services/components/dashboard/UserOverview";
 import HardSkills from "@/app/Services/components/dashboard/HardSkills";
 import SoftSkills from "@/app/Services/components/dashboard/SoftSkills";
+import BaseCard from "@/app/Services/components/shared/BaseCard";
 import CoursesRecomendation from "@/app/Services/components/dashboard/CoursesRecomendation";
 import Progress from "../../components/dashboard/Preogress";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import EducationData from "../../components/dashboard/EducationData";
 
 const ResumeStep2 = ({ analysisResult }) => {
   useEffect(() => {
@@ -28,6 +32,12 @@ const ResumeStep2 = ({ analysisResult }) => {
     resume_score: analysisResult.resume_score || 0,
   };
 
+  const education = {
+    Degree: analysisResult.Degree || [],
+    majors: analysisResult.Major_Subject || [],
+    total_experience: analysisResult.resume_data.total_experience || 0,
+  };
+
   const recommendationData = {
     recommendations: analysisResult.recommendations || [],
   };
@@ -46,24 +56,51 @@ const ResumeStep2 = ({ analysisResult }) => {
 
   return (
     <PageContainer title="Dashboard" description="This is Dashboard">
+      <ToastContainer
+        position="bottom-center"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
       <Box mt={3}>
         <Grid container spacing={3}>
           <Grid item xs={12} lg={8}>
-            {userOverviewData.no_of_pages !== 0 && <UserOverview data={userOverviewData} />}
+            {userOverviewData.no_of_pages !== 0 && (
+              <UserOverview data={userOverviewData} />
+            )}
           </Grid>
           <Grid item xs={12} lg={4}>
-            {progressData.resume_score !== 0 && <Progress resume_score={progressData.resume_score} />}
+            {progressData.resume_score !== 0 && (
+              <Progress resume_score={progressData.resume_score} />
+            )}
           </Grid>
           <Grid item xs={12} lg={8}>
-            {recommendationData.recommendations.length !== 0 && <Recomendation data={recommendationData} />}
+            {recommendationData.recommendations.length !== 0 && (
+              <Recomendation data={recommendationData} />
+            )}
+          </Grid>
+          <Grid item xs={12} lg={4}>
+            <BaseCard title="Education Details">
+              {education.Degree.length !== 0 && (
+                <EducationData data={education} />
+              )}
+            </BaseCard>
+          </Grid>
+          <Grid item xs={12} lg={8}>
+            {actualSkills.actual_skills.length !== 0 && (
+              <HardSkills data={actualSkills} />
+            )}
           </Grid>
           <Grid item xs={12} lg={4}></Grid>
           <Grid item xs={12} lg={8}>
-            {actualSkills.actual_skills.length !== 0 && <HardSkills data={actualSkills} />}
-          </Grid>
-          <Grid item xs={12} lg={4}></Grid>
-          <Grid item xs={12} lg={8}>
-            {recomendedSkills.recomended_skills.length !== 0 && <SoftSkills data={recomendedSkills} />}
+            {recomendedSkills.recomended_skills.length !== 0 && (
+              <SoftSkills data={recomendedSkills} />
+            )}
           </Grid>
           <Grid item xs={12} lg={4}></Grid>
           <Grid item xs={12} lg={8}>

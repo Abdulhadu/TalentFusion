@@ -22,6 +22,8 @@ import InputAdornment from "@mui/material/InputAdornment";
 import IconButton from "@mui/material/IconButton";
 import InputLabel from "@mui/material/InputLabel";
 import FormControl from "@mui/material/FormControl";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Company_signup = () => {
   const [showPassword, setShowPassword] = React.useState(false);
@@ -68,10 +70,20 @@ const Company_signup = () => {
       });
       const responseData = await response.json();
 
+      toast.success('You are succesfully Registered to TelentFussion..!', {
+        position: "bottom-center",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+
       console.log(responseData);
 
       if (responseData.status === "ok") {
-        router.push("/Interview/Personality");
+        router.push("/Services/recruiter/c_signin");
       } else {
         console.error("Error message:", responseData.message);
       }
@@ -82,6 +94,17 @@ const Company_signup = () => {
 
   return (
     <ThemeProvider theme={baselightTheme}>
+      <ToastContainer
+          position="bottom-center"
+          autoClose={5006}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+        />
       <Container
         component="main"
         maxWidth="sm"
@@ -116,7 +139,7 @@ const Company_signup = () => {
                 marginBottom: 15,
               }}
             />
-          <Typography component="h1" variant="h3">
+          <Typography component="h1" variant="h3" sx={{ textAlign: "center" }}>
             Signup to create the company profile
           </Typography>
           <Typography
@@ -158,6 +181,7 @@ const Company_signup = () => {
                   <OutlinedInput
                     id="outlined-adornment-password"
                     name="password"
+                    fullWidth
                     value={formData.password}
                     onChange={handleChange}
                     type={showPassword ? "text" : "password"}
@@ -185,6 +209,7 @@ const Company_signup = () => {
                   <OutlinedInput
                     id="outlined-adornment-password"
                     name="cpassword"
+                    fullWidth
                     value={formData.cpassword}
                     onChange={handleChange}
                     type={showPassword ? "text" : "password"}

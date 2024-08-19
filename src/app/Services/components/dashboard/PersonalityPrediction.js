@@ -3,6 +3,8 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
 import { useAuth } from "../../context/Authcontext";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const PersonalityPrediction = () => {
   const { interviewerAuthenticated } = useAuth();
@@ -79,10 +81,26 @@ const PersonalityPrediction = () => {
       );
 
       if (response.ok) {
-        // Handle success (redirect, show success message, etc.)
+        toast.success('Response Recorded Successfully..!', {
+          position: "bottom-center",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
         router.push("/Interview");
       } else {
-        // Handle error (show error message, etc.)
+        toast.error('Prediction Data submission failed. Please try again..!', {
+          position: "bottom-center",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
         console.error("Prediction submission failed");
       }
     } catch (error) {
@@ -92,6 +110,17 @@ const PersonalityPrediction = () => {
 
   return (
     <>
+      <ToastContainer
+          position="bottom-center"
+          autoClose={5006}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+        />
       <div className="w-full h-auto overflow-scroll block bg-gradient-to-r from-blue-100 via-purple-100 to-pink-100 p-4 flex items-center justify-center">
         <div className="bg-white py-6 px-10 sm:max-w-2xl w-full ">
           <div className="sm:text-3xl text-2xl font-semibold text-center text-sky-600  mb-12">

@@ -15,6 +15,18 @@ import BusinessIcon from "@mui/icons-material/Business";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import ThumbUpIcon from "@mui/icons-material/ThumbUp";
 
+const cleanUrl = (url) => {
+  // Remove any unwanted characters or HTML entities
+  try {
+    const decodedUrl = decodeURIComponent(url);
+    const matches = decodedUrl.match(/https?:\/\/[^\s/$.?#].[^\s]*/);
+    return matches ? matches[0] : '';
+  } catch (error) {
+    console.error("Invalid URL:", url, error);
+    return '';
+  }
+};
+
 const JobListing = ({ jobData }) => {
   return (
     <Grid container spacing={2}>
@@ -33,7 +45,7 @@ const JobListing = ({ jobData }) => {
                     <BusinessIcon fontSize="medium" color="secondary" />
                     <Typography variant="h2" component="div" ml={1}>
                       <Link
-                        href={job.url}
+                        href={cleanUrl(job.url)}
                         color="textPrimary"
                         target="_blank"
                         underline="hover"
@@ -59,7 +71,7 @@ const JobListing = ({ jobData }) => {
                     mt={3}
                   >
                     <Link
-                      href={job.url}
+                      href={cleanUrl(job.url)}
                       color="white"
                       target="_blank"
                       underline="none"

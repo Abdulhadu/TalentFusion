@@ -1,14 +1,16 @@
-"use client"
+"use client";
 import React, { useEffect, useState } from "react";
 import "/public/questionPageStyle.css";
 import { Paper, Grid, Stack, TextField, Button } from "@mui/material";
 import BaseCard from "@/app/Services/components/shared/BaseCard";
 import Questions from "@/app/Services/components/dashboard/Questions";
 import { useSpeechSynthesis } from "react-speech-kit";
+import Lottie from "lottie-react-web"; // Import Lottie library
+import animationData from "/public/Animation - 1710093016864";
 
 const VideoRecording = () => {
   const [question, setQuestion] = useState("");
-  const { speak } = useSpeechSynthesis(); 
+  const { speak } = useSpeechSynthesis();
   useEffect(() => {
     // Import the JavaScript file dynamically
     import("/public/questionPagescript.js")
@@ -41,55 +43,54 @@ const VideoRecording = () => {
     <>
       <Grid container spacing={3}>
         <Grid item xs={12} lg={6}>
-        <BaseCard title="Video Recorded">
-          <div id="container">
-            <video id="gum" playsInline autoPlay muted></video>
+          <BaseCard title="Video Recorded">
+            <div id="container">
+              <video id="gum" playsInline autoPlay muted></video>
 
-            <div>
-              <button id="start">Start camera</button>
-            </div>
-            <div id="buttons">
-              <button id="next" style={{ display: "none" }}>
-                Next Question
-              </button>
-              <button id="record" disabled>
-                Record
-              </button>
-              <button id="download" disabled>
-                Submit
-              </button>
-            </div>
+              <div>
+                <button id="start">Start camera</button>
+              </div>
+              <div id="buttons">
+                <button id="next" style={{ display: "none" }}>
+                  Next Question
+                </button>
+                <button id="record" disabled>
+                  Record
+                </button>
+                <button id="download" disabled>
+                  Submit
+                </button>
+              </div>
 
-            <div>
-              <h4>Audio constraints options</h4>
-              <p>
-                Echo cancellation:{" "}
-                <input type="checkbox" id="echoCancellation" />
-              </p>
-              <p>
-                Noise Suppression:{" "}
-                <input type="checkbox" id="noiseSuppression" />
-              </p>
-              <p>
-                Auto gain control :{" "}
-                <input type="checkbox" id="autogaincontrol" />
-              </p>
-            </div>
+              <div>
+                <h4>Audio constraints options</h4>
+                <p>
+                  Echo cancellation:{" "}
+                  <input type="checkbox" id="echoCancellation" />
+                </p>
+                <p>
+                  Noise Suppression:{" "}
+                  <input type="checkbox" id="noiseSuppression" />
+                </p>
+                <p>
+                  Auto gain control :{" "}
+                  <input type="checkbox" id="autogaincontrol" />
+                </p>
+              </div>
 
-            <div>
-              <span id="errorMsg"></span>
+              <div>
+                <span id="errorMsg"></span>
+              </div>
             </div>
-          </div>
           </BaseCard>
         </Grid>
         <Grid item xs={12} lg={6}>
           <BaseCard title="Questionaries">
             <div id="question">
-            <Questions
-                question={question}
-                // onNext={handleNextQuestion}
-             
-              />
+              <Questions question={question} />
+            </div>
+            <div id= "animationContainer">
+              
             </div>
           </BaseCard>
         </Grid>

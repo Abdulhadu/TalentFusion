@@ -8,6 +8,7 @@ import boto3
 from textblob import TextBlob
 import spacy
 from decouple import config
+import logging
 
 # Accessing the environment variables stored in .env file
 AWS_ACCESS_KEY_ID = config('aws_access_key_id')
@@ -95,15 +96,74 @@ def random_job_name():
 #     return text, data
 
 
+
+# ///////////////////////My WWriten Code////////////////////////////
+
+# def extract_text(file_path, file_name):
+#     try:
+#         file_path = os.path.join(file_path, file_name)
+#         s3_path = f"{BUCKET_NAME}/{file_name}"
+        
+#         print(f"Uploading file to S3: {file_path} -> s3://{s3_path}")
+#         s3.Bucket(BUCKET_NAME).upload_file(Filename=file_path, Key=file_name)
+#     except Exception as e:
+#         print("Could not fetch data")
+
+#     transcribe = boto3.Session(
+#         region_name=MY_REGION,
+#         aws_access_key_id=AWS_ACCESS_KEY_ID,
+#         aws_secret_access_key=AWS_SECRET_KEY
+#     ).client("transcribe")
+
+#     random_job = random_job_name()  
+#     file_format = "webm"
+#     job_uri = f"s3://{BUCKET_NAME}/"+file_name
+#     job_name = file_name.split('.')[0] + random_job   
+
+#     print(f"Starting transcription job: {job_name} -> {job_uri}")
+#     transcribe.start_transcription_job(
+#         TranscriptionJobName=job_name,
+#         Media={'MediaFileUri': job_uri},
+#         MediaFormat=file_format,
+#         LanguageCode=LANG_CODE
+#     )
+
+#     while True:
+#         status = transcribe.get_transcription_job(TranscriptionJobName=job_name)
+#         time.sleep(45)
+#         if status['TranscriptionJob']['TranscriptionJobStatus'] in ['COMPLETED', 'FAILED']:
+#             break
+
+#     if status['TranscriptionJob']['TranscriptionJobStatus'] == "COMPLETED":
+#         data = pd.read_json(status['TranscriptionJob']['Transcript']['TranscriptFileUri'])
+
+#     elif status['TranscriptionJob']['TranscriptionJobStatus'] == "FAILED":
+#         print("Failed to extract text from audio.....Try again!!")
+
+#     # get the text from json response object
+#     text = data['results'][1][0]['transcript']
+
+#     # Note: You might want to reconsider deleting all objects and object versions in the bucket.
+#     # It's a significant operation and might not be necessary for your use case.
+
+#     s3.Bucket(BUCKET_NAME).objects.all().delete()
+#     s3.Bucket(BUCKET_NAME).object_versions.delete()
+
+#     return text, data
+
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
 def extract_text(file_path, file_name):
     try:
         file_path = os.path.join(file_path, file_name)
         s3_path = f"{BUCKET_NAME}/{file_name}"
         
-        print(f"Uploading file to S3: {file_path} -> s3://{s3_path}")
+        logging.info(f"Uploading file to S3: {file_path} -> s3://{s3_path}")
         s3.Bucket(BUCKET_NAME).upload_file(Filename=file_path, Key=file_name)
     except Exception as e:
-        print("Could not fetch data")
+        logging.error(f"Could not fetch data: {e}")
+        return "", {}
 
     transcribe = boto3.Session(
         region_name=MY_REGION,
@@ -113,10 +173,10 @@ def extract_text(file_path, file_name):
 
     random_job = random_job_name()  
     file_format = "webm"
-    job_uri = f"s3://{BUCKET_NAME}/"+file_name
+    job_uri = f"s3://{BUCKET_NAME}/{file_name}"
     job_name = file_name.split('.')[0] + random_job   
 
-    print(f"Starting transcription job: {job_name} -> {job_uri}")
+    logging.info(f"Starting transcription job: {job_name} -> {job_uri}")
     transcribe.start_transcription_job(
         TranscriptionJobName=job_name,
         Media={'MediaFileUri': job_uri},
@@ -131,17 +191,25 @@ def extract_text(file_path, file_name):
             break
 
     if status['TranscriptionJob']['TranscriptionJobStatus'] == "COMPLETED":
-        data = pd.read_json(status['TranscriptionJob']['Transcript']['TranscriptFileUri'])
+        try:
+            data = pd.read_json(status['TranscriptionJob']['Transcript']['TranscriptFileUri'])
+            logging.info("Transcription data received.")
+        except Exception as e:
+            logging.error(f"Error parsing transcription data: {e}")
+            return "", {}
 
+        # Get the text from the JSON response object
+        try:
+            text = data['results']['transcripts'][0]['transcript']
+            logging.info("Transcript extracted successfully.")
+        except KeyError as e:
+            logging.error(f"KeyError: {e} - Full data: {data}")
+            text = ""
     elif status['TranscriptionJob']['TranscriptionJobStatus'] == "FAILED":
-        print("Failed to extract text from audio.....Try again!!")
+        logging.error("Failed to extract text from audio...Try again!")
+        return "", {}
 
-    # get the text from json response object
-    text = data['results'][1][0]['transcript']
-
-    # Note: You might want to reconsider deleting all objects and object versions in the bucket.
-    # It's a significant operation and might not be necessary for your use case.
-
+    # Note: Consider the implications of deleting all objects and object versions in the bucket.
     s3.Bucket(BUCKET_NAME).objects.all().delete()
     s3.Bucket(BUCKET_NAME).object_versions.delete()
 
@@ -165,16 +233,23 @@ def analyze_tone(text):
 
     # Calculate TextBlob sentiment score
     sentiment_score = blob.sentiment.polarity
+    
+    
+    if sentiment_score == 0.0:
+        sentiment_score += 0.01
 
     # Define emotion categories based on the sentiment score
-    if sentiment_score > 0:
-       emotion_category = 'Joy'
-    elif sentiment_score < 0:
-        
-       emotion_category = 'Sorrow'
+    if sentiment_score > 0.5:
+        emotion_category = 'Joy'
+    elif sentiment_score > 0.25:
+        emotion_category = 'Confident'
+    elif sentiment_score > -0.25:
+        emotion_category = 'Neutral'
+    elif sentiment_score > -0.5:
+        emotion_category = 'Tentative'
     else:
-       emotion_category = 'Neutral'
-
+        emotion_category = 'Fear'
+    
     # Create a response format similar to the tone_analyzer.tone output
     res = {
         'document_tone': {

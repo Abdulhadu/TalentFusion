@@ -15,10 +15,15 @@ import {
 } from "@mui/material";
 import MailOutlineIcon from "@mui/icons-material/MailOutline";
 import ThumbDownAltIcon from "@mui/icons-material/ThumbDownAlt";
+import PrivateRoute from "../../components/dashboard/PrivateRoute";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 // UserCard component
 const UserCard = ({ candidate }) => {
   const [evaluationReady, setEvaluationReady] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
+
   useEffect(() => {
     const checkEvaluationData = async () => {
       try {
@@ -48,43 +53,88 @@ const UserCard = ({ candidate }) => {
     checkEvaluationData();
   }, [candidate]);
 
+  const handleButtonClick = async (action) => {
+    try {
+      const apiEndpoint =
+        action === "accept"
+          ? "http://127.0.0.1:5328/recruiter/accept"
+          : "http://127.0.0.1:5328/recruiter/reject";
+
+      const requestData = {
+        id: candidate.ID,
+        name: candidate.name,
+        email: candidate.email,
+        job_id: candidate.job_id, 
+      };
+      
+
+      const response = await fetch(apiEndpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestData),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      toast.success(`Email is sent successfully to the candidate: ${candidate.name}!`);
+      setEmailSent(true);
+    } catch (error) {
+      toast.error(`Error handling ${action} request for candidate: ${candidate.name}!`);
+      console.error(`Error handling ${action} request:`, error.message);
+    }
+  };
+
   return (
-    <Card>
-      <CardContent>
-        <Typography variant="h6">{candidate.name}</Typography>
-        <Typography variant="body2" color="textSecondary">
-          {candidate.email}
-        </Typography>
-        <Stack
-          direction="row"
-          justifyContent="space-between"
-          alignItems="center"
-          mt={3}
-        >
-          <Button
-            href={`/Services/recruiter/ai_interview/${candidate.ID}`}
-            passHref
-            variant="contained"
-            color="primary"
-            disabled={!evaluationReady}
+    <PrivateRoute userType="recruiter">
+      <Card>
+        <CardContent>
+          <Typography variant="h6">{candidate.name}</Typography>
+          <Typography variant="body2" color="textSecondary">
+            {candidate.email}
+          </Typography>
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="center"
+            mt={3}
           >
-            Evaluate Now
-          </Button>
-          <Stack direction="row" spacing={2}>
-            <Tooltip title="Accept All">
-            <IconButton color="primary">
-              <MailOutlineIcon />
-            </IconButton>
-            </Tooltip>
-            <Tooltip title="Reject All">
-            <IconButton color="error">
-              <ThumbDownAltIcon />
-            </IconButton>
-            </Tooltip>
+            <Button
+              href={`/Services/recruiter/ai_interview/${candidate.ID}`}
+              passHref
+              variant="contained"
+              color="primary"
+              disabled={!evaluationReady}
+            >
+              Evaluate Now
+            </Button>
+            <Stack direction="row" spacing={2}>
+              <Tooltip title="Accept All">
+                <IconButton
+                  onClick={() => handleButtonClick("accept")}
+                  color="primary"
+                  disabled={emailSent}
+                >
+                  <MailOutlineIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Reject All">
+                <IconButton
+                  onClick={() => handleButtonClick("reject")}
+                  color="error"
+                  disabled={emailSent}
+                >
+                  <ThumbDownAltIcon />
+                </IconButton>
+              </Tooltip>
+            </Stack>
           </Stack>
-        </Stack>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </PrivateRoute>
   );
 };
 
@@ -93,7 +143,6 @@ const DashboardPage = () => {
   const [candidates, setCandidates] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch shortlisted candidates data
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -128,10 +177,10 @@ const DashboardPage = () => {
       <Box
         sx={{
           width: "100%",
-          height: "100vh", // Make the box cover the entire viewport height
+          height: "100vh",
           display: "flex",
-          alignItems: "center", // Center items vertically
-          justifyContent: "center", // Center items horizontally
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
         <CircularProgress color="primary" variant="indeterminate" />
@@ -141,6 +190,17 @@ const DashboardPage = () => {
 
   return (
     <Grid container spacing={2}>
+      <ToastContainer
+        position="bottom-center"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
       {candidates.map((candidate) => (
         <Grid key={candidate.id} item xs={12} sm={6} md={4}>
           <UserCard candidate={candidate} />

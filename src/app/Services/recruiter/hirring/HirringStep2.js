@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Paper, Grid, Stack, TextField, Button } from "@mui/material";
 import BaseCard from "@/app/Services/components/shared/BaseCard";
 import Job_resume_matching from "@/app/Services/components/dashboard/Job_resume_matching";
+import PrivateRoute from "../../components/dashboard/PrivateRoute";
 
 const HirringStep2 = () => {
   return (

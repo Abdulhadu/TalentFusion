@@ -1,5 +1,7 @@
 from datetime import datetime
+from celery import Celery
 from flask import Blueprint, current_app, render_template, request, redirect, url_for, flash
+import openai
 from pyresparser import ResumeParser
 import numpy as np
 from numpy.core.numeric import NaN
@@ -43,10 +45,21 @@ import secrets
 import jwt
 from datetime import datetime, timedelta
 from pymysqlpool import ConnectionPool
-from .facial_recognition import perform_facial_recognition
-from .analysis import video_analysis
-
+# from .facial_recognition import perform_facial_recognition
+from .Task import task
+import pickle
+from joblib import load
+from openai import OpenAI
+from transformers import pipeline
+from transformers import GPT2Tokenizer, GPT2LMHeadModel
+import torch
+import pathlib
+import textwrap
+import google.generativeai as genai
 # Access the environment variables stored in .env file
+
+# celery = Celery(app.name, broker='redis://localhost:6379')
+
 MYSQL_USER = config('mysql_user')
 MYSQL_PASSWORD = config('mysql_password')
 
@@ -58,8 +71,9 @@ MAIL_PWD = config('mail_pwd')
 COMPANY_MAIL = config('company_mail')
 COMPANY_PSWD = config('company_pswd')
 SECRET_KEY = "python_jwt"
-
-
+ 
+# GOOGLE_API_KEY="AIzaSyC6Q5NHUmGfAdrDk5HPqpWeitKk-9h2Id0"
+API_KEY = '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'
 db_config = {
     'host': 'localhost',
     'user': 'root',
@@ -76,9 +90,11 @@ print("MySQL connection established successfully")
 recruiter = Blueprint('recruiter', __name__, url_prefix='/recruiter')
 
  
- 
-
-
+# @recruiter.before_app_first_request
+# def configure_celery():
+#     celery.conf.update(recruiter.config)
+    
+    
 # Function to get a connection from the pool
 def get_connection():
     return pool.get_connection()
@@ -86,6 +102,9 @@ def get_connection():
 
 def close_pool(error):
     pool.close_all()
+    
+    
+    
 # ////////////////////////// Routes //////////////////////////////
 # Initial sliding page
 @recruiter.route('/')
@@ -150,10 +169,10 @@ def submitcv():
             resume.head()
            
             if get_connection():
-                cursor =  get_connection().cursor()
-
-                cursor.execute("INSERT INTO `extract_cv` VALUES (NULL,%s,%s,%s,%s,%s)",(resume_data['name'],resume_data['email'], str(skills), str(minimum_degree_level), str(acceptable_majors)))
-                get_connection().commit()
+                with get_connection() as connection:
+                   cursor = connection.cursor()
+                   cursor.execute("INSERT INTO `extract_cv` VALUES (NULL,%s,%s,%s,%s,%s)",(resume_data['name'],resume_data['email'], str(skills), str(minimum_degree_level), str(acceptable_majors)))
+                   connection.commit()
 
                 return jsonify({'message': 'Your application are posted successfully'}), 201
             else:
@@ -323,7 +342,8 @@ def modifying_type_job(jobs):
 
 def insert_matched_resume(id_resume, job_index, degree_matching, major_matching, skills_semantic_matching, matching_score):
     try:
-        with get_connection().cursor() as cursor:
+        with get_connection() as connection:
+            cursor = connection.cursor()
             # Check if records exist for the given id_resume and job_index
             check_sql = "SELECT COUNT(*) FROM `matchedresume` WHERE id_resume = %s AND job_index = %s"
             cursor.execute(check_sql, (id_resume, job_index))
@@ -337,9 +357,10 @@ def insert_matched_resume(id_resume, job_index, degree_matching, major_matching,
 
             # Insert the new record
             insert_sql = "INSERT INTO `matchedresume` VALUES (NULL, %s, %s, %s, %s, %s, %s)"
+           
             cursor.execute(insert_sql, (id_resume, job_index, degree_matching, major_matching, skills_semantic_matching, matching_score))
-
-            get_connection().commit()
+            connection.commit()
+            
     except Exception as e:
         # Handle the exception (log, raise, or return an error response)
         print(f"Error inserting matched resume: {str(e)}")
@@ -383,7 +404,8 @@ skills_semantic_matching=skills_semantic_matching if skills_semantic_matching el
 @recruiter.route("/top_resumes", methods=['GET'])
 def top_resumes():
     try:
-        with get_connection().cursor() as cursor:
+        with get_connection() as connection:
+            cursor = connection.cursor()
             # Check if records exist in shortlist_candidates
             check_records_sql = "SELECT COUNT(*) FROM `shortlist_candidates`"
             cursor.execute(check_records_sql)
@@ -403,7 +425,8 @@ def top_resumes():
                     ecv.skills,
                     ecv.degree,
                     ecv.majors,
-                    ej.job_title AS matched_job_title
+                    ej.job_title AS matched_job_title,
+                    ej.ID AS job_id  -- Fetch the job ID as well
                 FROM
                     extract_cv ecv
                 JOIN
@@ -420,15 +443,15 @@ def top_resumes():
             # Insert new records into shortlist_candidates
             if result:
                 insert_sql = """
-                INSERT INTO `shortlist_candidates` (name, email, skills, degree, majors, job_title)
-                VALUES (%s, %s, %s, %s, %s, %s)
+                INSERT INTO `shortlist_candidates` (name, email, skills, degree, majors, job_title, job_id)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
                 """
                 for row in result:
-                    cursor.execute(insert_sql, (str(row[1]), str(row[2]), str(row[3]), str(row[4]), str(row[5]), str(row[6])))
+                    cursor.execute(insert_sql, (str(row[1]), str(row[2]), str(row[3]), str(row[4]), str(row[5]), str(row[6]), row[7]))
 
-            get_connection().commit()
+            connection.commit()
 
-            top_resumes_matched = pd.DataFrame(result, columns=['ID', 'Name', 'Email', 'Skills', 'Degree_level', 'Majors', 'JOb_id'])
+            top_resumes_matched = pd.DataFrame(result, columns=['ID', 'Name', 'Email', 'Skills', 'Degree_level', 'Majors', 'Job_title', 'Job_id'])
             top_resumes_json = transform_dataframe_to_json(top_resumes_matched)
 
             # Return the JSON response
@@ -438,7 +461,9 @@ def top_resumes():
         # Handle the exception (log, raise, or return an error response)
         print(f"Error fetching top resumes: {str(e)}")
         return jsonify({'error': 'Internal Server Error'}), 500
-    
+
+
+
 
 @recruiter.route("/extractcv", methods=['GET'])
 def extractcv():
@@ -493,17 +518,20 @@ def post_job():
         salary = job_data.get('salary')
         location = job_data.get('venue')
         formatted_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        
 
         # Ensure a valid database connection
         if get_connection():
-            cursor =  get_connection().cursor()
-
-            # Raw SQL query to insert a new job record
-            cursor.execute("INSERT INTO jobs VALUES (NULL, %s, %s, %s, %s, %s)", (job_title, description, salary, location, formatted_date))
-            get_connection().commit()
-
-            # Return success response
-            return jsonify({'message': 'Job posted successfully'}), 201
+            with get_connection() as connection:
+                cursor = connection.cursor()
+                
+                cursor.execute("DELETE FROM jobs")
+                
+                cursor.execute("INSERT INTO jobs VALUES (NULL, %s, %s, %s, %s, %s)", (job_title, description, salary, location, formatted_date))
+                connection.commit()
+                
+                # Return success response
+                return jsonify({'message': 'Job posted successfully'}), 201
         else:
             return jsonify({'error': 'Failed to establish a database connection'}), 500
 
@@ -525,7 +553,8 @@ def get_shortlisted_cadidates():
             cursor.execute(sql)
             result = cursor.fetchall()
             
-        shortlist_candidates = pd.DataFrame(result , columns=['ID', 'name', 'email', 'skills', 'degree','majors','job_title'])
+        shortlist_candidates = pd.DataFrame(result , columns=['ID', 'name', 'email', 'skills', 'degree','majors','job_title', 'job_id'])
+        print("shortlist candidates are: ", shortlist_candidates )
         shortlist_json = transform_dataframe_to_json( shortlist_candidates )
         shortlist_list = jsonable_encoder(shortlist_json)
         return  shortlist_list 
@@ -565,7 +594,8 @@ def interviewee():
         userpassword = data.get('password')
         
         try: 
-            with get_connection().cursor() as cursor:
+            with get_connection() as connection:
+                cursor = connection.cursor()
 
                 cursor.execute("SELECT * FROM company WHERE company_name = %s AND company_email = %s", (username, usermail))
                 account = cursor.fetchone()
@@ -583,8 +613,8 @@ def interviewee():
                     err = "Please fill out all the fields"
                     return jsonify({'status': 'error', 'message': err })
                 else:
-                    cursor.execute("INSERT INTO company VALUES (NULL, % s, % s, % s)" , (username, usermail, userpassword,))
-                    get_connection().commit()
+                    cursor.execute("INSERT INTO company VALUES (NULL,%s,%s, %s)" , (username, usermail, userpassword,))
+                    connection.commit()
                     return jsonify({'status': 'ok', 'message':'You have successfully registered !!' })
         
         except Exception as e:
@@ -788,349 +818,6 @@ def predict():
 
 
 
-# # Record candidate's interview for face emotion and tone analysis
-# @recruiter.route('/analysis', methods = ['POST'])
-# def video_analysis():
-
-#     # get videos using media recorder js and save
-#     quest1 = request.files['question1']
-#     quest2 = request.files['question2']
-#     quest3 = request.files['question3']
-#     path1 = "./static/{}.{}".format("question1","webm")
-#     path2 = "./static/{}.{}".format("question2","webm")
-#     path3 = "./static/{}.{}".format("question3","webm")
-#     quest1.save(path1)
-#     quest2.save(path2)
-#     quest3.save(path3)
-
-#     # speech to text response for each question - AWS
-#     # responses = {'Question 1: Tell something about yourself': [] , 'Question 2: Why should we hire you?': [] , 'Question 3: Where Do You See Yourself Five Years From Now?': []}
-#     # ques = list(responses.keys())
-
-#     # text1 , data1 = extract_text("question1.webm")
-#     # time.sleep(15)
-#     # responses[ques[0]].append(text1)
-
-#     # text2 , data2 = extract_text("question2.webm")
-#     # time.sleep(15)
-#     # responses[ques[1]].append(text2)
-
-#     # text3 , data3 = extract_text("question3.webm")
-#     # time.sleep(15)
-#     # responses[ques[2]].append(text3)
-
-#     # tone analysis for each textual answer - IBM
-#     # res1 = analyze_tone(text1)
-#     # tones_doc1 = []
-
-#     # for tone in res1['document_tone']['tones']:
-#     #     tones_doc1.append((tone['tone_name'] , round(tone['score']*100, 2)))
-
-#     # if 'Tentative' not in [key for key, val in tones_doc1]:
-#     #     tones_doc1.append(('Tentative', 0.0))
-#     # if 'Analytical' not in [key for key, val in tones_doc1]:
-#     #     tones_doc1.append(('Analytical', 0.0))
-#     # if 'Fear' not in [key for key, val in tones_doc1]:
-#     #     tones_doc1.append(('Fear', 0.0))
-#     # if 'Confident' not in [key for key, val in tones_doc1]:
-#     #     tones_doc1.append(('Confident', 0.0))
-#     # if 'Joy' not in [key for key, val in tones_doc1]:
-#     #     tones_doc1.append(('Joy', 0.0))
-        
-#     # tones_doc1 = sorted(tones_doc1)
-
-#     # res2 = analyze_tone(text2)
-#     # tones_doc2 = []
-
-#     # for tone in res2['document_tone']['tones']:
-#     #     tones_doc2.append((tone['tone_name'] , round(tone['score']*100, 2)))
-        
-#     # if 'Tentative' not in [key for key, val in tones_doc2]:
-#     #     tones_doc2.append(('Tentative', 0.0))
-#     # if 'Analytical' not in [key for key, val in tones_doc2]:
-#     #     tones_doc2.append(('Analytical', 0.0))
-#     # if 'Fear' not in [key for key, val in tones_doc2]:
-#     #     tones_doc2.append(('Fear', 0.0))
-#     # if 'Confident' not in [key for key, val in tones_doc2]:
-#     #     tones_doc2.append(('Confident', 0.0))
-#     # if 'Joy' not in [key for key, val in tones_doc2]:
-#     #     tones_doc2.append(('Joy', 0.0))
-        
-#     # tones_doc2 = sorted(tones_doc2)
-
-#     # res3 = analyze_tone(text3)
-#     # tones_doc3 = []
-
-#     # for tone in res3['document_tone']['tones']:
-#     #     tones_doc3.append((tone['tone_name'] , round(tone['score']*100, 2)))
-        
-#     # if 'Tentative' not in [key for key, val in tones_doc3]:
-#     #     tones_doc3.append(('Tentative', 0.0))
-#     # if 'Analytical' not in [key for key, val in tones_doc3]:
-#     #     tones_doc3.append(('Analytical', 0.0))
-#     # if 'Fear' not in [key for key, val in tones_doc3]:
-#     #     tones_doc3.append(('Fear', 0.0))
-#     # if 'Confident' not in [key for key, val in tones_doc3]:
-#     #     tones_doc3.append(('Confident', 0.0))
-#     # if 'Joy' not in [key for key, val in tones_doc3]:
-#     #     tones_doc3.append(('Joy', 0.0))
-        
-#     # tones_doc3 = sorted(tones_doc3)
-
-#     # # plot tone analysis 
-#     # document_tones = tones_doc1 + tones_doc2 + tones_doc3
-
-#     # analytical_tone = []
-#     # tentative_tone = []
-#     # fear_tone = []
-#     # joy_tone = []
-#     # confident_tone = []
-
-#     # for sentiment, score in document_tones:
-#     #     if sentiment == "Analytical":
-#     #         analytical_tone.append(score)
-#     #     elif sentiment == "Tentative":
-#     #         tentative_tone.append(score)
-#     #     elif sentiment == "Fear":
-#     #         fear_tone.append(score)
-#     #     elif sentiment == "Joy":
-#     #         joy_tone.append(score)
-#     #     elif sentiment == "Confident":
-#     #         confident_tone.append(score)
-
-#     # values = np.array([0,1,2])*3
-#     # fig = plt.figure(figsize=(12, 6))
-#     # sns.set_style("whitegrid")
-#     # plt.xlim(-1.5, 10)
-
-#     # plt.bar(values , analytical_tone , width = 0.4 , label = 'Analytical')
-#     # plt.bar(values+0.4 , confident_tone , width = 0.4 , label = 'Confidence')
-#     # plt.bar(values+0.8 , fear_tone , width = 0.4 , label = 'Fear')
-#     # plt.bar(values-0.4 , joy_tone , width = 0.4 , label = 'Joy')
-#     # plt.bar(values-0.8 , tentative_tone , width = 0.4 , label = 'Tentative')
-
-#     # plt.xticks(ticks = values , labels = ['Question 1','Question 2','Question 3'] , fontsize = 15 , fontweight = 60)
-#     # plt.yticks(fontsize = 12 , fontweight = 90)
-#     # ax = plt.gca()
-#     # ax.xaxis.set_ticks_position('none')
-#     # ax.yaxis.set_ticks_position('none')                    
-#     # ax.xaxis.set_tick_params(pad = 5)
-#     # ax.yaxis.set_tick_params(pad = 5)
-#     # plt.legend()
-#     # plt.savefig(f'./static/tone_analysis.jpg' , bbox_inches = 'tight')
-
-#     # # save all responses
-#     # with open('./static/answers.json' , 'w') as file:
-#     #     json.dump(responses , file)
-
-
-#     try:
-#        # face emotion recognition - plotting the emotions against time in the video
-#        videos = ["question1.webm", "question2.webm", "question3.webm"]
-#        frame_per_sec = 100
-#        size = (1280, 720)
-
-#        video = cv2.VideoWriter(f"./static/combined.webm", cv2.VideoWriter_fourcc(*"VP90"), int(frame_per_sec), size)
-       
-#        print("Combined video save successfully")
-    
-
-#        # Write all the frames sequentially to the new video
-#        for v in videos:
-#            curr_v = cv2.VideoCapture(f'./static/{v}')
-#            while curr_v.isOpened():
-#                r, frame = curr_v.read()    
-#                if not r:
-#                    break
-#                video.write(frame)         
-#        video.release()
-#        print("Combined video for loop save successfully")
-       
-#        video_path = './static/combined.webm'
-#        perform_facial_recognition(video_path)
-
-#     #    face_detector = FER(mtcnn=True)
-#     #    print("Starting Emotional Analysis")
-#     #    input_video = Video(r"./static/combined.webm")
-#     #    processing_data = input_video.analyze(face_detector, display = False, save_frames = False, save_video = False, annotate_frames = False, zip_images = False)
-#     #    vid_df = input_video.to_pandas(processing_data)
-#     #    vid_df = input_video.get_first_face(vid_df)
-#     #    vid_df = input_video.get_emotions(vid_df)
-#     #    pltfig = vid_df.plot(figsize=(12, 6), fontsize=12).get_figure()
-#     #    plt.legend(fontsize = 'large' , loc = 1)
-#     #    pltfig.savefig(f'./static/fer_output.png')
-#        print("Completed succesffully")
-       
-       
-    # except Exception as e:
-    #     print("An error occurred:", e)
-    #     return jsonify({'success': False, 'error': str(e)})   
-       
-
-    # return jsonify({'success': True, 'message': 'Successfull recorded'})
-
-# Define a function for video analysis
-# async def video_analysis(user_id, user_folder_path, quest1_path, quest2_path, quest3_path):
-#     # speech to text response for each question - AWS
-#     responses = {'Question 1: Tell something about yourself': [] , 'Question 2: Why should we hire you?': [] , 'Question 3: Where Do You See Yourself Five Years From Now?': []}
-#     ques = list(responses.keys())
-
-#     text1, data1 = extract_text(user_folder_path, "question1.webm")
-#     time.sleep(15)
-#     responses[ques[0]].append(text1)
-
-#     text2, data2 = extract_text(user_folder_path, "question2.webm")
-#     time.sleep(15)
-#     responses[ques[1]].append(text2)
-
-#     text3, data3 = extract_text(user_folder_path, "question3.webm")
-#     time.sleep(15)
-#     responses[ques[2]].append(text3)
-
-#     # tone analysis for each textual answer - IBM
-#     res1 = analyze_tone(text1)
-#     tones_doc1 = []
-
-#     for tone in res1['document_tone']['tones']:
-#         tones_doc1.append((tone['tone_name'] , round(tone['score']*100, 2)))
-
-#     if 'Tentative' not in [key for key, val in tones_doc1]:
-#         tones_doc1.append(('Tentative', 0.0))
-#     if 'Analytical' not in [key for key, val in tones_doc1]:
-#         tones_doc1.append(('Analytical', 0.0))
-#     if 'Fear' not in [key for key, val in tones_doc1]:
-#         tones_doc1.append(('Fear', 0.0))
-#     if 'Confident' not in [key for key, val in tones_doc1]:
-#         tones_doc1.append(('Confident', 0.0))
-#     if 'Joy' not in [key for key, val in tones_doc1]:
-#         tones_doc1.append(('Joy', 0.0))
-        
-#     tones_doc1 = sorted(tones_doc1)
-
-#     res2 = analyze_tone(text2)
-#     tones_doc2 = []
-
-#     for tone in res2['document_tone']['tones']:
-#         tones_doc2.append((tone['tone_name'] , round(tone['score']*100, 2)))
-        
-#     if 'Tentative' not in [key for key, val in tones_doc2]:
-#         tones_doc2.append(('Tentative', 0.0))
-#     if 'Analytical' not in [key for key, val in tones_doc2]:
-#         tones_doc2.append(('Analytical', 0.0))
-#     if 'Fear' not in [key for key, val in tones_doc2]:
-#         tones_doc2.append(('Fear', 0.0))
-#     if 'Confident' not in [key for key, val in tones_doc2]:
-#         tones_doc2.append(('Confident', 0.0))
-#     if 'Joy' not in [key for key, val in tones_doc2]:
-#         tones_doc2.append(('Joy', 0.0))
-        
-#     tones_doc2 = sorted(tones_doc2)
-
-#     res3 = analyze_tone(text3)
-#     tones_doc3 = []
-
-#     for tone in res3['document_tone']['tones']:
-#         tones_doc3.append((tone['tone_name'] , round(tone['score']*100, 2)))
-        
-#     if 'Tentative' not in [key for key, val in tones_doc3]:
-#         tones_doc3.append(('Tentative', 0.0))
-#     if 'Analytical' not in [key for key, val in tones_doc3]:
-#         tones_doc3.append(('Analytical', 0.0))
-#     if 'Fear' not in [key for key, val in tones_doc3]:
-#         tones_doc3.append(('Fear', 0.0))
-#     if 'Confident' not in [key for key, val in tones_doc3]:
-#         tones_doc3.append(('Confident', 0.0))
-#     if 'Joy' not in [key for key, val in tones_doc3]:
-#         tones_doc3.append(('Joy', 0.0))
-        
-#     tones_doc3 = sorted(tones_doc3)
-
-#     # plot tone analysis 
-#     document_tones = tones_doc1 + tones_doc2 + tones_doc3
-
-#     analytical_tone = []
-#     tentative_tone = []
-#     fear_tone = []
-#     joy_tone = []
-#     confident_tone = []
-#     neutral_tone = []
-
-#     for sentiment, score in document_tones:
-#         if sentiment == "Analytical":
-#             analytical_tone.append(score)
-#         elif sentiment == "Tentative":
-#             tentative_tone.append(score)
-#         elif sentiment == "Fear":
-#             fear_tone.append(score)
-#         elif sentiment == "Joy":
-#             joy_tone.append(score)
-#         elif sentiment == "Confident":
-#             confident_tone.append(score)
-#         elif sentiment == "Neutral":  # Handle neutral tone
-#             neutral_tone.append(score)
-            
-
-
-#     values = np.array([0,1,2])*3
-#     fig = plt.figure(figsize=(12, 6))
-#     sns.set_style("whitegrid")
-#     plt.xlim(-1.5, 10)
-
-#     plt.bar(values , analytical_tone , width = 0.4 , label = 'Analytical')
-#     plt.bar(values+0.4 , confident_tone , width = 0.4 , label = 'Confidence')
-#     plt.bar(values+0.8 , fear_tone , width = 0.4 , label = 'Fear')
-#     plt.bar(values-0.4 , joy_tone , width = 0.4 , label = 'Joy')
-#     plt.bar(values-0.8 , tentative_tone , width = 0.4 , label = 'Tentative')
-#     plt.bar(values - 1.2, neutral_tone, width=0.4, label='Neutral')
-
-#     plt.xticks(ticks = values , labels = ['Question 1','Question 2','Question 3'] , fontsize = 15 , fontweight = 60)
-#     plt.yticks(fontsize = 12 , fontweight = 90)
-#     ax = plt.gca()
-#     ax.xaxis.set_ticks_position('none')
-#     ax.yaxis.set_ticks_position('none')                    
-#     ax.xaxis.set_tick_params(pad = 5)
-#     ax.yaxis.set_tick_params(pad = 5)
-#     plt.legend()
-#     plt.savefig(os.path.join(user_folder_path, f'{user_id}_tone_analysis.jpg'), bbox_inches='tight')
-
-#     # save all resposnses
-#     result_filename = f'{user_id}_answers.json'
-#     result_filepath = os.path.join(user_folder_path, result_filename)
-#     with open(result_filepath, 'w') as file:
-#         json.dump(responses, file)
-
-#     with open('./static/answers.json' , 'w') as file:
-#         json.dump(responses , file)
-
-#     # face emotion recognition - plotting the emotions against time in the video
-#     videos = ["question1.webm", "question2.webm", "question3.webm"]
-#     frame_per_sec = 100
-#     size = (1280, 720)
-    
-    
-#     combined_video_path = os.path.join(user_folder_path, 'combined.webm')
-#     video = cv2.VideoWriter(combined_video_path, cv2.VideoWriter_fourcc(*"VP90"), int(frame_per_sec), size)
-
-#     # Write all the frames sequentially to the new video
-#     for v in videos:
-#         video_path = os.path.join(user_folder_path, v)
-#         print(video_path)
-#         curr_v = cv2.VideoCapture(video_path)
-#         while curr_v.isOpened():
-#             r, frame = curr_v.read()    
-#             if not r:
-#                 break
-#             video.write(frame)         
-#     video.release()
-#     print("video saved succesfully")
-#     print(combined_video_path)
-#     print("Combined video for loop save successfully")
-       
-#     video_path = combined_video_path
-#     perform_facial_recognition(video_path, user_folder_path)
-#     # Your video analysis code here...
-#     # This code will run asynchronously in the background
-#     await asyncio.sleep(5) 
 
 # Record candidate's interview for face emotion and tone analysis
 @recruiter.route('/analysis', methods = ['POST'])
@@ -1141,198 +828,34 @@ def video_analysis_endpoint():
     os.makedirs(user_folder_path, exist_ok=True)
     print("user folder path is: ", user_folder_path)
 
-    # get videos using media recorder js and save
-    quest1 = request.files['question1']
-    quest2 = request.files['question2']
-    quest3 = request.files['question3']
-    path1 = os.path.join(user_folder_path, "question1.webm")
-    path2 = os.path.join(user_folder_path, "question2.webm")
-    path3 = os.path.join(user_folder_path, "question3.webm")
-    quest1.save(path1)
-    quest2.save(path2)
-    quest3.save(path3)
     
-    # Run video analysis asynchronously using asyncio.run()
+    questions = json.loads(request.form['questions'])
+    print(questions)
+    video_paths = []
+    for i, question in enumerate(questions, start=1):
+        question_data = request.files.get(f'question{i}')
+        if question_data:
+            question_path = os.path.join(user_folder_path, f'question{i}.webm')
+            question_data.save(question_path)
+            video_paths.append(question_path)
+            print(video_paths)
+    
+    result_filename = f'{user_id}_answers.json'
+    result_filepath = os.path.join(user_folder_path, result_filename)
+    questions_dict = {question: [] for question in questions}
+    with open(result_filepath, 'w', encoding='utf-8') as f:
+        json.dump(questions_dict, f)
+    
     # Enqueue the video analysis task
-    video_analysis.delay(user_id, user_folder_path, path1, path2, path3)
-
-    # # speech to text response for each question - AWS
-    # responses = {'Question 1: Tell something about yourself': [] , 'Question 2: Why should we hire you?': [] , 'Question 3: Where Do You See Yourself Five Years From Now?': []}
-    # ques = list(responses.keys())
-
-    # text1, data1 = extract_text(user_folder_path, "question1.webm")
-    # time.sleep(15)
-    # responses[ques[0]].append(text1)
-
-    # text2, data2 = extract_text(user_folder_path, "question2.webm")
-    # time.sleep(15)
-    # responses[ques[1]].append(text2)
-
-    # text3, data3 = extract_text(user_folder_path, "question3.webm")
-    # time.sleep(15)
-    # responses[ques[2]].append(text3)
-
-    # # tone analysis for each textual answer - IBM
-    # res1 = analyze_tone(text1)
-    # tones_doc1 = []
-
-    # for tone in res1['document_tone']['tones']:
-    #     tones_doc1.append((tone['tone_name'] , round(tone['score']*100, 2)))
-
-    # if 'Tentative' not in [key for key, val in tones_doc1]:
-    #     tones_doc1.append(('Tentative', 0.0))
-    # if 'Analytical' not in [key for key, val in tones_doc1]:
-    #     tones_doc1.append(('Analytical', 0.0))
-    # if 'Fear' not in [key for key, val in tones_doc1]:
-    #     tones_doc1.append(('Fear', 0.0))
-    # if 'Confident' not in [key for key, val in tones_doc1]:
-    #     tones_doc1.append(('Confident', 0.0))
-    # if 'Joy' not in [key for key, val in tones_doc1]:
-    #     tones_doc1.append(('Joy', 0.0))
-        
-    # tones_doc1 = sorted(tones_doc1)
-
-    # res2 = analyze_tone(text2)
-    # tones_doc2 = []
-
-    # for tone in res2['document_tone']['tones']:
-    #     tones_doc2.append((tone['tone_name'] , round(tone['score']*100, 2)))
-        
-    # if 'Tentative' not in [key for key, val in tones_doc2]:
-    #     tones_doc2.append(('Tentative', 0.0))
-    # if 'Analytical' not in [key for key, val in tones_doc2]:
-    #     tones_doc2.append(('Analytical', 0.0))
-    # if 'Fear' not in [key for key, val in tones_doc2]:
-    #     tones_doc2.append(('Fear', 0.0))
-    # if 'Confident' not in [key for key, val in tones_doc2]:
-    #     tones_doc2.append(('Confident', 0.0))
-    # if 'Joy' not in [key for key, val in tones_doc2]:
-    #     tones_doc2.append(('Joy', 0.0))
-        
-    # tones_doc2 = sorted(tones_doc2)
-
-    # res3 = analyze_tone(text3)
-    # tones_doc3 = []
-
-    # for tone in res3['document_tone']['tones']:
-    #     tones_doc3.append((tone['tone_name'] , round(tone['score']*100, 2)))
-        
-    # if 'Tentative' not in [key for key, val in tones_doc3]:
-    #     tones_doc3.append(('Tentative', 0.0))
-    # if 'Analytical' not in [key for key, val in tones_doc3]:
-    #     tones_doc3.append(('Analytical', 0.0))
-    # if 'Fear' not in [key for key, val in tones_doc3]:
-    #     tones_doc3.append(('Fear', 0.0))
-    # if 'Confident' not in [key for key, val in tones_doc3]:
-    #     tones_doc3.append(('Confident', 0.0))
-    # if 'Joy' not in [key for key, val in tones_doc3]:
-    #     tones_doc3.append(('Joy', 0.0))
-        
-    # tones_doc3 = sorted(tones_doc3)
-
-    # # plot tone analysis 
-    # document_tones = tones_doc1 + tones_doc2 + tones_doc3
-
-    # analytical_tone = []
-    # tentative_tone = []
-    # fear_tone = []
-    # joy_tone = []
-    # confident_tone = []
-    # neutral_tone = []
-
-    # for sentiment, score in document_tones:
-    #     if sentiment == "Analytical":
-    #         analytical_tone.append(score)
-    #     elif sentiment == "Tentative":
-    #         tentative_tone.append(score)
-    #     elif sentiment == "Fear":
-    #         fear_tone.append(score)
-    #     elif sentiment == "Joy":
-    #         joy_tone.append(score)
-    #     elif sentiment == "Confident":
-    #         confident_tone.append(score)
-    #     elif sentiment == "Neutral":  # Handle neutral tone
-    #         neutral_tone.append(score)
-            
-
-
-    # values = np.array([0,1,2])*3
-    # fig = plt.figure(figsize=(12, 6))
-    # sns.set_style("whitegrid")
-    # plt.xlim(-1.5, 10)
-
-    # plt.bar(values , analytical_tone , width = 0.4 , label = 'Analytical')
-    # plt.bar(values+0.4 , confident_tone , width = 0.4 , label = 'Confidence')
-    # plt.bar(values+0.8 , fear_tone , width = 0.4 , label = 'Fear')
-    # plt.bar(values-0.4 , joy_tone , width = 0.4 , label = 'Joy')
-    # plt.bar(values-0.8 , tentative_tone , width = 0.4 , label = 'Tentative')
-    # plt.bar(values - 1.2, neutral_tone, width=0.4, label='Neutral')
-
-    # plt.xticks(ticks = values , labels = ['Question 1','Question 2','Question 3'] , fontsize = 15 , fontweight = 60)
-    # plt.yticks(fontsize = 12 , fontweight = 90)
-    # ax = plt.gca()
-    # ax.xaxis.set_ticks_position('none')
-    # ax.yaxis.set_ticks_position('none')                    
-    # ax.xaxis.set_tick_params(pad = 5)
-    # ax.yaxis.set_tick_params(pad = 5)
-    # plt.legend()
-    # plt.savefig(os.path.join(user_folder_path, f'{user_id}_tone_analysis.jpg'), bbox_inches='tight')
-
-    # # save all resposnses
-    # result_filename = f'{user_id}_answers.json'
-    # result_filepath = os.path.join(user_folder_path, result_filename)
-    # with open(result_filepath, 'w') as file:
-    #     json.dump(responses, file)
-
-    # with open('./static/answers.json' , 'w') as file:
-    #     json.dump(responses , file)
-
-    # # face emotion recognition - plotting the emotions against time in the video
-    # videos = ["question1.webm", "question2.webm", "question3.webm"]
-    # frame_per_sec = 100
-    # size = (1280, 720)
-    
-    
-    # combined_video_path = os.path.join(user_folder_path, 'combined.webm')
-    # video = cv2.VideoWriter(combined_video_path, cv2.VideoWriter_fourcc(*"VP90"), int(frame_per_sec), size)
-
-    # # Write all the frames sequentially to the new video
-    # for v in videos:
-    #     video_path = os.path.join(user_folder_path, v)
-    #     print(video_path)
-    #     curr_v = cv2.VideoCapture(video_path)
-    #     while curr_v.isOpened():
-    #         r, frame = curr_v.read()    
-    #         if not r:
-    #             break
-    #         video.write(frame)         
-    # video.release()
-    # print("video saved succesfully")
-    # print(combined_video_path)
-    # print("Combined video for loop save successfully")
-       
-    # video_path = combined_video_path
-    # perform_facial_recognition(video_path, user_folder_path)
-    
-    # input_video = Video(combined_video_path)
-    # print("input video path: ",input_video)
-    
-    # face_detector = FER(mtcnn=True)
-    # print("Combined video path:", combined_video_path)
+    uuid = task.delay(user_id, user_folder_path, *video_paths, questions=questions)
    
-    # processing_data = input_video.analyze(face_detector, display = False, save_frames = False, save_video = False, annotate_frames = False, zip_images = False)
-    # vid_df = input_video.to_pandas(processing_data)
-    # vid_df = input_video.get_first_face(vid_df)
-    # vid_df = input_video.get_emotions(vid_df)
-    # pltfig = vid_df.plot(figsize=(12, 6), fontsize=12).get_figure()
-    # plt.legend(fontsize = 'large' , loc = 1)
-    # # pltfig.savefig(f'./static/fer_output.png')
-    # # output_path = os.path.join(user_folder_path, 'fer_output.png')
-    # pltfig.savefig(os.path.join(user_folder_path, 'fer_output.png'))
-    
+    # print(uuid)
+   
     response_data = {'success': True, 'message': "Saved successfully"}
 
     return jsonify(response_data)
+
+
 
 
 # Interview completed response message
@@ -1379,14 +902,18 @@ def create_candidate_interview_table():
 def signup_candidate(name, email):
     # Generate a random password
     password = secrets.token_urlsafe(10)
-
+    
     # Insert candidate details into the table
-    insert_query = f"INSERT INTO candidate_interview (name, email, password) VALUES ('{name}', '{email}', '{password}')"
-    cursor =  get_connection().cursor()
-    cursor.execute(insert_query)
-    get_connection().commit()
+    print("before storing in database", name, email, password)
+    if get_connection():
+       cursor =  get_connection().cursor()
+       cursor.execute("INSERT INTO `candidateinterview`(`id`, `name`, `email`, `password`) VALUES (NULL,%s,%s,%s)", (name, email, password))
+       get_connection().commit()
+       return email, password
+    else:
+       return "not saved"
 
-    return email, password
+    
 
 @recruiter.route('/accept', methods=['POST'])
 def accept():
@@ -1397,9 +924,49 @@ def accept():
     position = data['job_id']
 
     # Create the candidate_interview table and signup the candidate
-    connection = create_candidate_interview_table()
-    email, password = signup_candidate(name, email)
- 
+    # connection = create_candidate_interview_table()
+    # email, password = signup_candidate(name, email)
+    password = secrets.token_urlsafe(10)
+    
+    
+    print("before storing in database", name, email, password)
+    
+    if get_connection():
+        try:
+            with get_connection() as connection:
+               cursor = connection.cursor()
+               cursor.execute("INSERT INTO candidate_interview VALUES (NULL, %s, %s, %s)", (name, email, password))
+               connection.commit()
+
+        
+            # Send job confirmation mail
+            msg = Message('Job Confirmation Letter', sender=MAIL_USERNAME, recipients=[email])
+            msg.body = f"Dear {name},\n\n" \
+                       f"We hope this message finds you well. On behalf of the Talent Fusion team, I am pleased to inform you that you have been selected for the {position} position.\n\n" \
+                       f"At Talent Fusion, we were impressed with your skills and experience, and we believe that you will be a valuable addition to our organization.\n\n" \
+                       f"The next step in our hiring process is to invite you for a remote interview. Our outstanding hiring technology ensures a seamless and efficient interview process for candidates.\n\n" \
+                       f"You can schedule your interview at any convenient time using the following details:\n" \
+                       f"Interview Link: http://localhost:3000/Interview/login \n" \
+                       f"Username: {email}\n" \
+                       f"Password: {password}\n\n" \
+                       f"We look forward to discussing your qualifications further and getting to know you better during the interview. If you have any questions or concerns, feel free to reach out.\n\n" \
+                       f"Thank you for considering a career with Talent Fusion. We are excited about the possibility of having you on our team.\n\n" \
+                       f"Best Regards,\n" \
+                       f"[Your Full Name]\n" \
+                       f"[Your Position]\n" \
+                       f"Talent Fusion\n" \
+                       f"Email: [Your Email]\n" \
+                       f"Phone: [Your Phone Number]"
+
+            mail.send(msg)
+
+            return jsonify({'email': email, 'password': password, 'message': 'success'})
+        
+        except Exception as e:
+            print("Error:", e)
+            return jsonify({'message': 'error'})
+        
+    
 
     # Send job confirmation mail
     msg = Message('Job Confirmation Letter', sender=MAIL_USERNAME, recipients=[email])
@@ -1419,6 +986,8 @@ def accept():
                f"Talent Fusion\n" \
                f"Email: [Your Email]\n" \
                f"Phone: [Your Phone Number]"
+               
+
     mail.send(msg)
 
     return jsonify({'email': email, 'password': password, 'message': 'success'})
@@ -1500,6 +1069,440 @@ def check_evaluation_data():
     if not os.path.exists(candidate_folder_path):
         return jsonify({"error": "Candidate folder does not exist"}), 404
 
-
-
     return jsonify({"evaluation_data_ready": candidate_folder_path})
+
+
+# ---------------------Attriton API ------------------
+model = pickle.load(open ('attrition_model.pkl','rb'))
+@recruiter.route ('/predict',methods=['POST','GET'])
+def predict_attritiom():
+    
+    """
+    For rendering results on HTML GUI
+    """
+    
+    json_data = request.get_json()
+    
+    Age = json_data.get("Age")
+    BusinessTravel = json_data.get("BusinessTravel")
+    DailyRate = json_data.get("DailyRate")
+    Department = json_data.get("Department")
+    DistanceFromHome = json_data.get("DistanceFromHome")
+    Education = json_data.get("Education")
+    EducationField = json_data.get("EducationField")
+    EnvironmentSatisfaction = json_data.get("EnvironmentSatisfaction")
+    Gender = json_data.get("Gender")
+    HourlyRate = json_data.get("HourlyRate")
+    JobInvolvement = json_data.get("JobInvolvement")
+    JobLevel = json_data.get("JobLevel")
+    JobRole = json_data.get("JobRole")
+    JobSatisfaction = json_data.get("JobSatisfaction")
+    MaritalStatus = json_data.get("MaritalStatus")
+    MonthlyIncome = json_data.get("MonthlyIncome")
+    NumCompaniesWorked = json_data.get("NumCompaniesWorked")
+    OverTime = json_data.get("OverTime")
+    PerformanceRating = json_data.get("PerformanceRating")
+    RelationshipSatisfaction = json_data.get("RelationshipSatisfaction")
+    StockOptionLevel = json_data.get("StockOptionLevel")
+    TotalWorkingYears = json_data.get("TotalWorkingYears")
+    TrainingTimesLastYear = json_data.get("TrainingTimesLastYear")
+    WorkLifeBalance = json_data.get("WorkLifeBalance")
+    YearsAtCompany = json_data.get("YearsAtCompany")
+    YearsInCurrentRole = json_data.get("YearsInCurrentRole")
+    YearsSinceLastPromotion = json_data.get("YearsSinceLastPromotion")
+    YearsWithCurrManager = json_data.get("YearsWithCurrManager")
+    
+    json_data['Age'] = int(json_data['Age'])
+    json_data['DailyRate'] = int(json_data['DailyRate'])
+    json_data['DistanceFromHome'] = int(json_data['DistanceFromHome'])
+    json_data['HourlyRate'] = int(json_data['HourlyRate'])
+    json_data['MonthlyIncome'] = int(json_data['MonthlyIncome'])
+    json_data['EnvironmentSatisfaction'] = int(json_data['EnvironmentSatisfaction'])
+    json_data['JobInvolvement'] = int(json_data['JobInvolvement'])
+    json_data['JobLevel'] = int(json_data['JobLevel'])
+    json_data['JobSatisfaction'] = int(json_data['JobSatisfaction'])
+    json_data['PerformanceRating'] = int(json_data['PerformanceRating'])
+    json_data['RelationshipSatisfaction'] =       int(json_data['RelationshipSatisfaction'])
+    json_data['TotalWorkingYears'] = int(json_data['TotalWorkingYears'])
+    json_data['WorkLifeBalance'] = int(json_data['WorkLifeBalance'])
+    json_data['YearsAtCompany'] = int(json_data['YearsAtCompany'])
+    json_data['YearsInCurrentRole'] = int(json_data['YearsInCurrentRole'])
+    json_data['YearsSinceLastPromotion'] = int(json_data['YearsSinceLastPromotion'])
+    json_data['YearsWithCurrManager'] = int(json_data['YearsWithCurrManager'])
+    json_data['NumCompaniesWorked'] = int(json_data['NumCompaniesWorked'])
+
+    print("JSON data received:", json_data)
+
+     # Create DataFrame from JSON data
+    df = pd.DataFrame([json_data])
+    print("df is ", df)
+
+    df['Total_Satisfaction'] = (df['EnvironmentSatisfaction'] +
+df['JobInvolvement'] + df['JobSatisfaction'] + df['RelationshipSatisfaction'] +  df['WorkLifeBalance']) / 5
+
+    # Drop Columns
+    df.drop (
+['EnvironmentSatisfaction','JobInvolvement','JobSatisfaction','RelationshipSatisfaction','WorkLifeBalance'],
+        axis=1,inplace=True)
+
+    # Convert Total satisfaction into boolean
+    df['Total_Satisfaction_bool'] = df['Total_Satisfaction'].apply (lambda x: 1 if x >= 2.8 else 0)
+    df.drop ('Total_Satisfaction',axis=1,inplace=True)
+
+    # It can be observed that the rate of attrition of employees below age of 35 is high
+    df['Age_bool'] = df['Age'].apply (lambda x: 1 if x < 35 else 0)
+    df.drop ('Age',axis=1,inplace=True)
+
+    # It can be observed that the employees are more likey the drop the job if dailyRate less than 800
+    df['DailyRate_bool'] = df['DailyRate'].apply (lambda x: 1 if x < 800 else 0)
+    df.drop ('DailyRate',axis=1,inplace=True)
+
+    # Employees working at R&D Department have higher attrition rate
+    df['Department_bool'] = df['Department'].apply (lambda x: 1 if x == 'Research & Development' else 0)
+    df.drop ('Department',axis=1,inplace=True)
+
+    # Rate of attrition of employees is high if DistanceFromHome > 10
+    df['DistanceFromHome_bool'] = df['DistanceFromHome'].apply (lambda x: 1 if x > 10 else 0)
+    df.drop ('DistanceFromHome',axis=1,inplace=True)
+
+    # Employees are more likey to drop the job if the employee is working as Laboratory Technician
+    df['JobRole_bool'] = df['JobRole'].apply (lambda x: 1 if x == 'Laboratory Technician' else 0)
+    df.drop ('JobRole',axis=1,inplace=True)
+
+    # Employees are more likey to the drop the job if the employee's hourly rate < 65
+    df['HourlyRate_bool'] = df['HourlyRate'].apply (lambda x: 1 if x < 65 else 0)
+    df.drop ('HourlyRate',axis=1,inplace=True)
+
+    # Employees are more likey to the drop the job if the employee's MonthlyIncome < 4000
+    df['MonthlyIncome_bool'] = df['MonthlyIncome'].apply (lambda x: 1 if x < 4000 else 0)
+    df.drop ('MonthlyIncome',axis=1,inplace=True)
+
+    # Rate of attrition of employees is high if NumCompaniesWorked < 3
+    df['NumCompaniesWorked_bool'] = df['NumCompaniesWorked'].apply (lambda x: 1 if x > 3 else 0)
+    df.drop ('NumCompaniesWorked',axis=1,inplace=True)
+
+    # Employees are more likey to the drop the job if the employee's TotalWorkingYears < 8
+    df['TotalWorkingYears_bool'] = df['TotalWorkingYears'].apply (lambda x: 1 if x < 8 else 0)
+    df.drop ('TotalWorkingYears',axis=1,inplace=True)
+
+    # Employees are more likey to the drop the job if the employee's YearsAtCompany < 3
+    df['YearsAtCompany_bool'] = df['YearsAtCompany'].apply (lambda x: 1 if x < 3 else 0)
+    df.drop ('YearsAtCompany',axis=1,inplace=True)
+
+    # Employees are more likey to the drop the job if the employee's YearsInCurrentRole < 3
+    df['YearsInCurrentRole_bool'] = df['YearsInCurrentRole'].apply (lambda x: 1 if x < 3 else 0)
+    df.drop ('YearsInCurrentRole',axis=1,inplace=True)
+
+    # Employees are more likely to the drop the job if the employee's YearsSinceLastPromotion < 1
+    df['YearsSinceLastPromotion_bool'] = df['YearsSinceLastPromotion'].apply (lambda x: 1 if x < 1 else 0)
+    df.drop ('YearsSinceLastPromotion',axis=1,inplace=True)
+
+    # Employees are more likely to the drop the job if the employee's YearsWithCurrManager < 1
+    df['YearsWithCurrManager_bool'] = df['YearsWithCurrManager'].apply (lambda x: 1 if x < 1 else 0)
+    df.drop ('YearsWithCurrManager',axis=1,inplace=True)
+
+    # Convert Categorical to Numerical
+    # Buisness Travel
+    if BusinessTravel == 'Rarely':
+        df['BusinessTravel_Rarely'] = 1
+        df['BusinessTravel_Frequently'] = 0
+        df['BusinessTravel_No_Travel'] = 0
+    elif BusinessTravel == 'Frequently':
+        df['BusinessTravel_Rarely'] = 0
+        df['BusinessTravel_Frequently'] = 1
+        df['BusinessTravel_No_Travel'] = 0
+    else:
+        df['BusinessTravel_Rarely'] = 0
+        df['BusinessTravel_Frequently'] = 0
+        df['BusinessTravel_No_Travel'] = 1
+    df.drop ('BusinessTravel',axis=1,inplace=True)
+
+    # Education
+    if Education == 1:
+        df['Education_1'] = 1
+        df['Education_2'] = 0
+        df['Education_3'] = 0
+        df['Education_4'] = 0
+        df['Education_5'] = 0
+    elif Education == 2:
+        df['Education_1'] = 0
+        df['Education_2'] = 1
+        df['Education_3'] = 0
+        df['Education_4'] = 0
+        df['Education_5'] = 0
+    elif Education == 3:
+        df['Education_1'] = 0
+        df['Education_2'] = 0
+        df['Education_3'] = 1
+        df['Education_4'] = 0
+        df['Education_5'] = 0
+    elif Education == 4:
+        df['Education_1'] = 0
+        df['Education_2'] = 0
+        df['Education_3'] = 0
+        df['Education_4'] = 1
+        df['Education_5'] = 0
+    else:
+        df['Education_1'] = 0
+        df['Education_2'] = 0
+        df['Education_3'] = 0
+        df['Education_4'] = 0
+        df['Education_5'] = 1
+    df.drop ('Education',axis=1,inplace=True)
+
+    # EducationField
+    if EducationField == 'Life Sciences':
+        df['EducationField_Life_Sciences'] = 1
+        df['EducationField_Medical'] = 0
+        df['EducationField_Marketing'] = 0
+        df['EducationField_Technical_Degree'] = 0
+        df['Education_Human_Resources'] = 0
+        df['Education_Other'] = 0
+    elif EducationField == 'Medical':
+        df['EducationField_Life_Sciences'] = 0
+        df['EducationField_Medical'] = 1
+        df['EducationField_Marketing'] = 0
+        df['EducationField_Technical_Degree'] = 0
+        df['Education_Human_Resources'] = 0
+        df['Education_Other'] = 0
+    elif EducationField == 'Marketing':
+        df['EducationField_Life_Sciences'] = 0
+        df['EducationField_Medical'] = 0
+        df['EducationField_Marketing'] = 1
+        df['EducationField_Technical_Degree'] = 0
+        df['Education_Human_Resources'] = 0
+        df['Education_Other'] = 0
+    elif EducationField == 'Technical Degree':
+        df['EducationField_Life_Sciences'] = 0
+        df['EducationField_Medical'] = 0
+        df['EducationField_Marketing'] = 0
+        df['EducationField_Technical_Degree'] = 1
+        df['Education_Human_Resources'] = 0
+        df['Education_Other'] = 0
+    elif EducationField == 'Human Resources':
+        df['EducationField_Life_Sciences'] = 0
+        df['EducationField_Medical'] = 0
+        df['EducationField_Marketing'] = 0
+        df['EducationField_Technical_Degree'] = 0
+        df['Education_Human_Resources'] = 1
+        df['Education_Other'] = 0
+    else:
+        df['EducationField_Life_Sciences'] = 0
+        df['EducationField_Medical'] = 0
+        df['EducationField_Marketing'] = 0
+        df['EducationField_Technical_Degree'] = 0
+        df['Education_Human_Resources'] = 1
+        df['Education_Other'] = 1
+    df.drop ('EducationField',axis=1,inplace=True)
+
+    # Gender
+    if Gender == 'Male':
+        df['Gender_Male'] = 1
+        df['Gender_Female'] = 0
+    else:
+        df['Gender_Male'] = 0
+        df['Gender_Female'] = 1
+    df.drop ('Gender',axis=1,inplace=True)
+
+    # Marital Status
+    if MaritalStatus == 'Married':
+        df['MaritalStatus_Married'] = 1
+        df['MaritalStatus_Single'] = 0
+        df['MaritalStatus_Divorced'] = 0
+    elif MaritalStatus == 'Single':
+        df['MaritalStatus_Married'] = 0
+        df['MaritalStatus_Single'] = 1
+        df['MaritalStatus_Divorced'] = 0
+    else:
+        df['MaritalStatus_Married'] = 0
+        df['MaritalStatus_Single'] = 0
+        df['MaritalStatus_Divorced'] = 1
+    df.drop ('MaritalStatus',axis=1,inplace=True)
+
+    # Overtime
+    if OverTime == 'Yes':
+        df['OverTime_Yes'] = 1
+        df['OverTime_No'] = 0
+    else:
+        df['OverTime_Yes'] = 0
+        df['OverTime_No'] = 1
+    df.drop ('OverTime',axis=1,inplace=True)
+
+    # Stock Option Level
+    if StockOptionLevel == 0:
+        df['StockOptionLevel_0'] = 1
+        df['StockOptionLevel_1'] = 0
+        df['StockOptionLevel_2'] = 0
+        df['StockOptionLevel_3'] = 0
+    elif StockOptionLevel == 1:
+        df['StockOptionLevel_0'] = 0
+        df['StockOptionLevel_1'] = 1
+        df['StockOptionLevel_2'] = 0
+        df['StockOptionLevel_3'] = 0
+    elif StockOptionLevel == 2:
+        df['StockOptionLevel_0'] = 0
+        df['StockOptionLevel_1'] = 0
+        df['StockOptionLevel_2'] = 1
+        df['StockOptionLevel_3'] = 0
+    else:
+        df['StockOptionLevel_0'] = 0
+        df['StockOptionLevel_1'] = 0
+        df['StockOptionLevel_2'] = 0
+        df['StockOptionLevel_3'] = 1
+    df.drop ('StockOptionLevel',axis=1,inplace=True)
+
+    # Training Time Last Year
+    if TrainingTimesLastYear == 0:
+        df['TrainingTimesLastYear_0'] = 1
+        df['TrainingTimesLastYear_1'] = 0
+        df['TrainingTimesLastYear_2'] = 0
+        df['TrainingTimesLastYear_3'] = 0
+        df['TrainingTimesLastYear_4'] = 0
+        df['TrainingTimesLastYear_5'] = 0
+        df['TrainingTimesLastYear_6'] = 0
+    elif TrainingTimesLastYear == 1:
+        df['TrainingTimesLastYear_0'] = 0
+        df['TrainingTimesLastYear_1'] = 1
+        df['TrainingTimesLastYear_2'] = 0
+        df['TrainingTimesLastYear_3'] = 0
+        df['TrainingTimesLastYear_4'] = 0
+        df['TrainingTimesLastYear_5'] = 0
+        df['TrainingTimesLastYear_6'] = 0
+    elif TrainingTimesLastYear == 2:
+        df['TrainingTimesLastYear_0'] = 0
+        df['TrainingTimesLastYear_1'] = 0
+        df['TrainingTimesLastYear_2'] = 1
+        df['TrainingTimesLastYear_3'] = 0
+        df['TrainingTimesLastYear_4'] = 0
+        df['TrainingTimesLastYear_5'] = 0
+        df['TrainingTimesLastYear_6'] = 0
+    elif TrainingTimesLastYear == 3:
+        df['TrainingTimesLastYear_0'] = 0
+        df['TrainingTimesLastYear_1'] = 0
+        df['TrainingTimesLastYear_2'] = 0
+        df['TrainingTimesLastYear_3'] = 1
+        df['TrainingTimesLastYear_4'] = 0
+        df['TrainingTimesLastYear_5'] = 0
+        df['TrainingTimesLastYear_6'] = 0
+    elif TrainingTimesLastYear == 4:
+        df['TrainingTimesLastYear_0'] = 0
+        df['TrainingTimesLastYear_1'] = 0
+        df['TrainingTimesLastYear_2'] = 0
+        df['TrainingTimesLastYear_3'] = 0
+        df['TrainingTimesLastYear_4'] = 1
+        df['TrainingTimesLastYear_5'] = 0
+        df['TrainingTimesLastYear_6'] = 0
+    elif TrainingTimesLastYear == 5:
+        df['TrainingTimesLastYear_0'] = 0
+        df['TrainingTimesLastYear_1'] = 0
+        df['TrainingTimesLastYear_2'] = 0
+        df['TrainingTimesLastYear_3'] = 0
+        df['TrainingTimesLastYear_4'] = 0
+        df['TrainingTimesLastYear_5'] = 1
+        df['TrainingTimesLastYear_6'] = 0
+    else:
+        df['TrainingTimesLastYear_0'] = 0
+        df['TrainingTimesLastYear_1'] = 0
+        df['TrainingTimesLastYear_2'] = 0
+        df['TrainingTimesLastYear_3'] = 0
+        df['TrainingTimesLastYear_4'] = 0
+        df['TrainingTimesLastYear_5'] = 0
+        df['TrainingTimesLastYear_6'] = 1
+    df.drop ('TrainingTimesLastYear',axis=1,inplace=True)
+
+    # df.to_csv ('features.csv',index=False)
+    print("data sent to model for training")
+
+    prediction = model.predict (df)
+    print("Response Recieved")
+    print("prediction is: ", prediction)
+
+    if prediction == 0:
+       prediction_text = 'Employee Might Not Leave The Job'
+    else:
+       prediction_text = 'Employee Might Leave The Job'
+       
+    print(df.columns)
+    additional_info = {
+        'Age': Age,
+        'BusinessTravel': BusinessTravel,
+        'DailyRate': DailyRate,
+        'Department': Department,
+        'DistanceFromHome': DistanceFromHome,
+        'Education': Education,
+        'EducationField': EducationField,
+        'EnvironmentSatisfaction': EnvironmentSatisfaction,
+        'Gender': Gender,
+        'HourlyRate': HourlyRate,
+        'JobInvolvement': JobInvolvement,
+        'JobLevel': JobLevel,
+        'JobRole': JobRole,
+        'JobSatisfaction': JobSatisfaction,
+        'MaritalStatus': MaritalStatus,
+        'MonthlyIncome': MonthlyIncome,
+        'NumCompaniesWorked': NumCompaniesWorked,
+        'OverTime': OverTime,
+        'PerformanceRating': PerformanceRating,
+        'RelationshipSatisfaction': RelationshipSatisfaction,
+        'StockOptionLevel': StockOptionLevel,
+        'TotalWorkingYears': TotalWorkingYears,
+        'TrainingTimesLastYear': TrainingTimesLastYear,
+        'WorkLifeBalance': WorkLifeBalance,
+        'YearsAtCompany': YearsAtCompany,
+        'YearsInCurrentRole': YearsInCurrentRole,
+        'YearsSinceLastPromotion': YearsSinceLastPromotion,
+        'YearsWithCurrManager': YearsWithCurrManager
+    }    
+
+    # Prepare the response JSON
+    response_data = {
+        'prediction': prediction.tolist(),
+        'prediction_text': prediction_text,
+        'additional_info': additional_info
+    }
+
+
+    # Convert the response data to JSON format
+    response_json = json.dumps(response_data)
+    
+    # Return the response JSON
+    return response_json
+
+# /////////////////////// Generating Question //////////////////////
+client = OpenAI(api_key=API_KEY)
+@recruiter.route('/generate_questions', methods=['GET'])
+def generate_questions():
+    try:
+        with get_connection().cursor() as cursor:
+            sql = "SELECT Job_description FROM Jobs"
+            cursor.execute(sql)
+            job_description = cursor.fetchone()[0]
+            print(job_description)
+            
+        prompt = f"Generate 2 different short interview questions for candidates applying for the following job description:\n\n{job_description}\n\n. donot add label of question and donot add question number before each question"
+        
+        
+        response = client.completions.create(
+            model="gpt-3.5-turbo-instruct",
+            prompt=prompt,
+            temperature=1,
+            max_tokens=256,
+            top_p=1,
+            frequency_penalty=0,
+            presence_penalty=0
+        )
+        
+        # Extract the generated text from the response
+        generated_text = response.choices[0].text.strip()
+        
+        # Remove numbered prefixes before each question
+        modified_text = re.sub(r'^\d+\.\s*|^Question \d+:\s*', '', generated_text, flags=re.MULTILINE)
+        
+        # Split the modified text into individual questions
+        questions = modified_text.split('\n')
+        formatted_questions = [f"Question {i+1}: {q.strip()}" for i, q in enumerate(questions)]
+        
+        return jsonify({'questions': formatted_questions})
+    except Exception as e:
+        print("Error on OpenAi:", str(e))
+        return jsonify({'error': str(e)}), 500

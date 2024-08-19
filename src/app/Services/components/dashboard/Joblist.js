@@ -38,6 +38,11 @@ const Joblist = () => {
     }));
   };
 
+  const formatDate = (timestamp) => {
+    const date = new Date(timestamp);
+    return date.toLocaleString(); // or use a more specific format like date.toISOString().slice(0, 19).replace('T', ' ')
+  };
+
   if (loading) {
     return (
       <Box sx={{ width: "100%", position: "relative" }}>
@@ -57,35 +62,35 @@ const Joblist = () => {
           {jobData.map((job, index) => (
             <>
               <div
-                key={index}
+                key={`job-title-${index}`}
                 className="md:grid md:grid-cols-2 hover:bg-gray-50 md:space-y-0 space-y-1 p-4 border-b"
               >
                 <p className="text-gray-600">Job Title</p>
                 <p>{job.job_title}</p>
               </div>
               <div
-                key={index}
+                key={`application-for-${index}`}
                 className="md:grid md:grid-cols-2 hover:bg-gray-50 md:space-y-0 space-y-1 p-4 border-b"
               >
                 <p className="text-gray-600">Application for</p>
                 <p>{job.job_title}</p>
               </div>
               <div
-                key={index}
+                key={`job-location-${index}`}
                 className="md:grid md:grid-cols-2 hover:bg-gray-50 md:space-y-0 space-y-1 p-4 border-b"
               >
                 <p className="text-gray-600">Job Location</p>
                 <p>{job["job-location"]}</p>
               </div>
               <div
-                key={index}
+                key={`job-salary-${index}`}
                 className="md:grid md:grid-cols-2 hover:bg-gray-50 md:space-y-0 space-y-1 p-4 border-b"
               >
                 <p className="text-gray-600">Job Salary</p>
                 <p>{`$ ${job.job_salary}`}</p>
               </div>
               <div
-                key={index}
+                key={`job-description-${index}`}
                 className="md:grid md:grid-cols-2 hover:bg-gray-50 md:space-y-0 space-y-1 p-4 border-b"
               >
                 <p className="text-gray-600">Job Description</p>
@@ -94,7 +99,7 @@ const Joblist = () => {
                     ? job.job_description
                     : `${job.job_description.substring(0, 8 * 50)}...`}
                   <span
-                    className="read-more cursor-pointer text-blue-500 hover:text-blue-800 hower:underline"
+                    className="read-more cursor-pointer text-blue-500 hover:text-blue-800 hover:underline"
                     onClick={() => handleExpandToggle(index)}
                   >
                     {expandedDescriptions[index] ? "Read Less" : "Read More"}
@@ -102,11 +107,11 @@ const Joblist = () => {
                 </div>
               </div>
               <div
-                key={index}
+                key={`posted-at-${index}`}
                 className="md:grid md:grid-cols-2 hover:bg-gray-50 md:space-y-0 space-y-1 p-4"
               >
                 <p className="text-gray-600">Posted At</p>
-                <div className="space-y-2">{job.timestamp}</div>
+                <div className="space-y-2">{formatDate(job.timestamp)}</div>
               </div>
             </>
           ))}

@@ -18,10 +18,9 @@ import {
 import BaseCard from "../shared/DashboardCard";
 import MailOutlineIcon from "@mui/icons-material/MailOutline";
 import ThumbDownAltIcon from "@mui/icons-material/ThumbDownAlt";
-import Tooltip from '@mui/material/Tooltip';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-
+import Tooltip from "@mui/material/Tooltip";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const CandidateSelection = () => {
   const [cvData, setCVData] = useState([]);
@@ -41,10 +40,12 @@ const CandidateSelection = () => {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
         const data = await response.json();
+        toast.success("Top Candidates are selected for the further process..!");
         setCVData(data);
         setLoading(false);
       } catch (error) {
-        console.error("Error fetching CV data:", error.message);
+        toast.error("Error while selecting candidates..!");
+        console.error("Error while selecting candidates data: ", error.message);
         setLoading(false);
       }
     };
@@ -83,18 +84,14 @@ const CandidateSelection = () => {
       }
 
       // Update the UI or handle success as needed
-      toast.success('${action} request successful for candidate: ${cv.Name}..!', {
-        position: "bottom-center",
-        autoClose: 1000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-      });
-      setEmailSent(prevState => ({ ...prevState, [cv.ID]: true }));
-     
+      toast.success(
+        "Email is Sent Succesfully to the candidate: ${cv.Name}..!"
+      );
+      setEmailSent((prevState) => ({ ...prevState, [cv.ID]: true }));
     } catch (error) {
+      toast.error(
+        "Error handling ${action} request for candidate: ${cv.Name}..!"
+      );
       console.error(`Error handling ${action} request:`, error.message);
     }
   };
@@ -110,9 +107,9 @@ const CandidateSelection = () => {
   return (
     <>
       <BaseCard title="Top Matched and Selected Resumes">
-      <ToastContainer
+        <ToastContainer
           position="bottom-center"
-          autoClose={5006}
+          autoClose={2000}
           hideProgressBar={false}
           newestOnTop={false}
           closeOnClick

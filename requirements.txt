@@ -26,3 +26,6 @@ pymongo~=4.2.0
 motor~=3.0.0
 sentence-transformers==2.2.2
 pyjwt
+pickle-mixin==1.0.2
+joblib==0.16.0
+openai

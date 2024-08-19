@@ -16,6 +16,8 @@ import Container from "@mui/material/Container";
 import { baselightTheme } from "../../../../utils/theme/DefaultColors";
 import { ThemeProvider } from "@mui/material/styles";
 import { AuthProvider, useAuth } from "../../context/Authcontext";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Signup = () => {
   const router = useRouter();
@@ -48,6 +50,15 @@ const Signup = () => {
         const data = await response.json();
         const token = data.token;
         console.log("token is :", token);
+        toast.success("You are succesfully Signin For Interview..!", {
+          position: "bottom-center",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
 
         // Set the token in the cookie
         login(token);
@@ -56,6 +67,18 @@ const Signup = () => {
         router.push("/Interview/Personality");
       } else {
         console.error("Login failed");
+        toast.error(
+          "Login Failed. Please check your credentials and try again..!",
+          {
+            position: "bottom-center",
+            autoClose: 2000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+          }
+        );
       }
     } catch (error) {
       console.error("Error:", error);
@@ -64,22 +87,32 @@ const Signup = () => {
 
   return (
     <ThemeProvider theme={baselightTheme}>
+      <ToastContainer
+        position="bottom-center"
+        autoClose={5006}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
       <Container component="main" maxWidth="lg">
         <CssBaseline />
+        <Grid container justifyContent="center" alignItems="center" spacing={2} style={{ 
+      justifyContent: "center",
+      marginTop: 8,
+      py: 5,
+      backgroundColor: "white",
+      boxShadow: 15,
+      borderRadius: 5, }}>
+         
 
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            marginTop: 8,
-            py: 5,
-            backgroundColor: "white",
-            boxShadow: 15,
-            borderRadius: 5,
-          }}
-        >
+       
+           <Grid item xs={12} sm={6}>
           <Box sx={{ px: 5, py: 5 }}>
-            <Box sx={{ width: 450, height: "auto" }}>
+            <Box sx={{ width: "auto", height: "auto" }}>
               <img
                 src="/images/profile/user-1.jpg"
                 alt="Your Avatar"
@@ -92,6 +125,8 @@ const Signup = () => {
               />
             </Box>
           </Box>
+          </Grid>
+          <Grid item xs={12} sm={6}>
           <Box
             sx={{
               display: "flex",
@@ -111,7 +146,7 @@ const Signup = () => {
                 marginBottom: 15,
               }}
             />
-            <Typography component="h1" variant="h2" sx={{ mt: 3 }}>
+            <Typography component="h1" variant="h2" sx={{ mt: 3 , textAlign: "center" }}>
               Welcome User For Interview
             </Typography>
             <Typography
@@ -172,7 +207,9 @@ const Signup = () => {
               </Grid>
             </Box>
           </Box>
-        </Box>
+          </Grid>
+      
+        </Grid>
       </Container>
     </ThemeProvider>
   );

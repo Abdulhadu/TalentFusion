@@ -91,7 +91,6 @@ const LinearStepper = () => {
                   variant="contained"
                   color="primary"
                   onClick={handleNext}
-                  style={{ marginLeft: "700px" }}
                 >
                   {activeStep === steps.length - 1 ? "Finish" : "Next"}
                 </Button>

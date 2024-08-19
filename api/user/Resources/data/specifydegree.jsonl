@@ -81,7 +81,26 @@
 {"label": "DEGREE|Bachelors-in-Pharmacy", "pattern": [{"LOWER": "bachelors in pharmacy"}]}
 {"label": "DEGREE|Doctor-of-Medicine", "pattern": [{"LOWER": "doctor of medicine"}]}
 {"label": "DEGREE|Doctor-of-Pharmacy", "pattern": [{"LOWER": "doctor of pharmacy"}]}
-{"label": "DEGREE|Bachelors-in-Computer-Science", "pattern": [{"LOWER": "bachelors in computer science"}]}
+{"label": "DEGREE|Computer-Science-Undergraduate","pattern": [{"LOWER": "computer science undergraduate"}]}
+{"label": "DEGREE|Electrical-Engineering-Undergraduate","pattern": [{"LOWER": "electrical engineering undergraduate"}]}
+{"label": "DEGREE|Mechanical-Engineering-Undergraduate","pattern": [{"LOWER": "mechanical engineering undergraduate"}]}
+{"label": "DEGREE|Civil-Engineering-Undergraduate","pattern": [{"LOWER": "civil engineering undergraduate"}]}
+{"label": "DEGREE|Chemical-Engineering-Undergraduate","pattern": [{"LOWER": "chemical engineering undergraduate"}]}
+{"label": "DEGREE|Biomedical-Engineering-Undergraduate","pattern": [{"LOWER": "biomedical engineering undergraduate"}]}
+{"label": "DEGREE|Aerospace-Engineering-Undergraduate","pattern": [{"LOWER": "aerospace engineering undergraduate"}]}
+{"label": "DEGREE|Software-Engineering-Undergraduate","pattern": [{"LOWER": "software engineering undergraduate"}]}
+{"label": "DEGREE|Information-Technology-Undergraduate","pattern": [{"LOWER": "information technology undergraduate"}]}
+{"label": "DEGREE|Computer-Engineering-Undergraduate","pattern": [{"LOWER": "computer engineering undergraduate"}]}
+{"label": "DEGREE|Business-Administration-Undergraduate","pattern": [{"LOWER": "business administration undergraduate"}]}
+{"label": "DEGREE|Finance-Undergraduate","pattern": [{"LOWER": "finance undergraduate"}]}
+{"label": "DEGREE|Marketing-Undergraduate","pattern": [{"LOWER": "marketing undergraduate"}]}
+{"label": "DEGREE|Economics-Undergraduate","pattern": [{"LOWER": "economics undergraduate"}]}
+{"label": "DEGREE|Accounting-Undergraduate","pattern": [{"LOWER": "accounting undergraduate"}]}
+{"label": "DEGREE|Psychology-Undergraduate","pattern": [{"LOWER": "psychology undergraduate"}]}
+{"label": "DEGREE|Sociology-Undergraduate","pattern": [{"LOWER": "sociology undergraduate"}]}
+{"label": "DEGREE|English-Undergraduate","pattern": [{"LOWER": "english undergraduate"}]}
+{"label": "DEGREE|History-Undergraduate","pattern": [{"LOWER": "history undergraduate"}]}
+{"label": "DEGREE|Political-Science-Undergraduate","pattern": [{"LOWER": "political science undergraduate"}]}
 {"label": "DEGREE|Bachelors-in-Information-Technology", "pattern": [{"LOWER": "bachelors in information technology"}]}
 {"label": "DEGREE|Bachelors-in-Electrical-Engineering", "pattern": [{"LOWER": "bachelors in electrical engineering"}]}
 {"label": "DEGREE|Master-of-Science-in-Computer-Science", "pattern": [{"LOWER": "master of science in computer science"}]}
@@ -114,5 +133,36 @@
 {"label": "DEGREE|Master-of-Economics", "pattern": [{"LOWER": "master of economics"}]}
 {"label": "DEGREE|Master-of-Political-Science", "pattern": [{"LOWER": "master of political science"}]}
 {"label": "DEGREE|Master-of-Psychology", "pattern": [{"LOWER": "master of psychology"}]}
-
+{"label": "DEGREE|Computer-Science-Undergraduate","pattern": [{"LOWER": "computer science undergraduate"}]}
+{"label": "DEGREE|Undergraduate", "pattern": [{"LOWER": "undergraduate"}]}
+{"label": "DEGREE|Bachelor-Undergraduate", "pattern": [{"LOWER": "bachelor undergraduate"}]}
+{"label": "DEGREE|Bachelors-Undergraduate","pattern": [{"LOWER": "bachelors undergraduate"}]}
+{"label": "DEGREE|Undergrad","pattern": [{"LOWER": "undergrad"}]}
+{"label": "DEGREE|Undergrads","pattern": [{"LOWER": "undergrads"}]}
+{"label": "DEGREE|Computer-Science-Undergraduate","pattern": [{"LOWER": "computer science undergraduate"}]}
+{"label": "DEGREE|Computer-Science-Undergraduate","pattern": [{"LOWER": "under graduate in computer science"}]}
+{"label": "DEGREE|Computer-Science-Undergraduate","pattern": [{"LOWER": "undergraduate4yeardegree"}]}
+{"label": "DEGREE|Computer-Science-Undergraduate","pattern": [{"LOWER": "programincomputerscience"}]}
+{"label": "DEGREE|Bachelors-in-Science-Undergraduate","pattern": [{"LOWER": "computer science"}]}
+{"label": "DEGREE|Bachelors-in-Science-Undergraduate","pattern": [{"LOWER": "computer"}]}
+{"label": "DEGREE|Bachelors-in-Science-Undergraduate","pattern": [{"LOWER": "computer"}]}
+{"label": "DEGREE|Electrical-Engineering-Undergraduate","pattern": [{"LOWER": "electrical engineering undergraduate"}]}
+{"label": "DEGREE|Mechanical-Engineering-Undergraduate","pattern": [{"LOWER": "mechanical engineering undergraduate"}]}
+{"label": "DEGREE|Civil-Engineering-Undergraduate","pattern": [{"LOWER": "civil engineering undergraduate"}]}
+{"label": "DEGREE|Chemical-Engineering-Undergraduate","pattern": [{"LOWER": "chemical engineering undergraduate"}]}
+{"label": "DEGREE|Biomedical-Engineering-Undergraduate","pattern": [{"LOWER": "biomedical engineering undergraduate"}]}
+{"label": "DEGREE|Aerospace-Engineering-Undergraduate","pattern": [{"LOWER": "aerospace engineering undergraduate"}]}
+{"label": "DEGREE|Software-Engineering-Undergraduate","pattern": [{"LOWER": "software engineering undergraduate"}]}
+{"label": "DEGREE|Information-Technology-Undergraduate","pattern": [{"LOWER": "information technology undergraduate"}]}
+{"label": "DEGREE|Computer-Engineering-Undergraduate","pattern": [{"LOWER": "computer engineering undergraduate"}]}
+{"label": "DEGREE|Business-Administration-Undergraduate","pattern": [{"LOWER": "business administration undergraduate"}]}
+{"label": "DEGREE|Finance-Undergraduate","pattern": [{"LOWER": "finance undergraduate"}]}
+{"label": "DEGREE|Marketing-Undergraduate","pattern": [{"LOWER": "marketing undergraduate"}]}
+{"label": "DEGREE|Economics-Undergraduate","pattern": [{"LOWER": "economics undergraduate"}]}
+{"label": "DEGREE|Accounting-Undergraduate","pattern": [{"LOWER": "accounting undergraduate"}]}
+{"label": "DEGREE|Psychology-Undergraduate","pattern": [{"LOWER": "psychology undergraduate"}]}
+{"label": "DEGREE|Sociology-Undergraduate","pattern": [{"LOWER": "sociology undergraduate"}]}
+{"label": "DEGREE|English-Undergraduate","pattern": [{"LOWER": "english undergraduate"}]}
+{"label": "DEGREE|History-Undergraduate","pattern": [{"LOWER": "history undergraduate"}]}
+{"label": "DEGREE|Political-Science-Undergraduate","pattern": [{"LOWER": "political science undergraduate"}]}
 

@@ -5,6 +5,8 @@ import EmailIcon from "@mui/icons-material/Email";
 import AddLocationAltIcon from "@mui/icons-material/AddLocationAlt";
 import PaidIcon from "@mui/icons-material/Paid";
 import Company_details from "@/app/Services/components/dashboard/company_details"
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Jobapplication = () => {
   const [resumeFile, setResumeFile] = useState(null);
@@ -32,7 +34,17 @@ const Jobapplication = () => {
 
         if (response.ok) {
           const result = await response.json();
+          toast.success('Your documents are submitted successfully..!', {
+            position: "bottom-center",
+            autoClose: 2000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+          });
           setAnalysisResult(result);
+
         } else {
           console.error("Error analyzing resume");
         }
@@ -46,6 +58,17 @@ const Jobapplication = () => {
 
   return (
     <>
+     <ToastContainer
+          position="bottom-center"
+          autoClose={5006}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+        />
       <div>
        <Company_details/>
       </div>
@@ -71,7 +94,7 @@ const Jobapplication = () => {
             />
             <button
               type="submit"
-              className=" mx-auto lg:mt-5 max-w-xs nline-flex items-center h-10 w-full px-5 text-indigo-100 transition-colors duration-150 bg-teal-500 rounded-lg focus:shadow-outline hover:bg-teal-600"
+              className=" mx-auto mt-5 max-w-xs nline-flex items-center h-10 w-full px-5 text-indigo-100 transition-colors duration-150 bg-teal-500 rounded-lg focus:shadow-outline hover:bg-teal-600"
             >
               <span className="m-auto text-center text-white text-lg font-medium">
                 Submit Your CV{" "}
