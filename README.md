@@ -4,7 +4,7 @@
 
 Talent Fusion is a Resume Analyzer and Job-Based Recruitment System designed to enhance resumes according to ATS (Applicant Tracking System) criteria and provide personalized job recommendations. The system uses advanced algorithms and web scraping techniques to help users improve their resume visibility and find relevant job opportunities.
 
-![App Screenshot](public/UI%ss/1.jpg)
+![App Screenshot](public/UIss/1.jpg)
 
 ## Basic Information
 
