@@ -110,13 +110,92 @@ Talent Fusion is a Resume Analyzer and Job-Based Recruitment System designed to 
 
 ## Getting Started
 
-### Prerequisites
-1. Install Redis.
-2. Start Redis server: `redis-server`.
+To get started with the Telent Fussion project, follow these steps:
 
-### Running the Project
+### 1. Set Up the Environment
 
-#### Start Celery Worker Server
-Use the following command:
-```bash
-celery -A api.app.celery worker --loglevel=info
+#### Install Flask and Next.js
+
+1. **Install Python and Flask:**
+   - Ensure Python is installed on your system. Download it from [Python's official website](https://www.python.org/downloads/).
+   - Install Flask using pip:
+     ```bash
+     pip install Flask
+     ```
+
+2. **Install Node.js and Next.js:**
+   - Download and install Node.js from [Node.js official website](https://nodejs.org/).
+   - Create a Next.js application or navigate to your existing Next.js project directory:
+     ```bash
+     npx create-next-app@latest
+     ```
+
+2. **Start the Development Servers**
+   -***Front-End (Next.js)***
+   - Open a new terminal and navigate to the front-end project directory:
+     ```bash
+     cd path/to/your/nextjs/project
+     ```
+
+   ***Start the Next.js development server:***
+      ```bash
+      npm run dev
+      ```
+
+
+   ***Back-End (Flask)***
+   - Open another terminal and navigate to the back-end project directory:
+bash
+    ```bash
+    cd path/to/your/flask/project
+    ```
+    Start the Flask server:
+    ```bash
+    npm run flask-dev
+    ```
+3. **Install and Configure Redis**
+   - Download and install Redis from the Redis official website. Follow the installation instructions for your operating system.
+   - Start the Redis server:
+     ```bash
+     redis-server
+     ```
+
+
+   - Ensure that the Redis server is accessible at redis://localhost:6379/0.
+4. **Set Up and Run Celery**
+    - In the terminal where you have your Flask project, start the Celery worker server:
+     ```bash
+     celery -A api.app.celery worker --loglevel=info
+     ```
+
+- **Install Front-End Packages:**
+     ```bash
+     npm install
+     ```
+
+- **Install Back-End Packages:**
+     ```bash
+     pip install -r requirements.txt
+     ```
+- **Start Next.js Server:**
+     ```bash
+     npm run dev
+     ```
+- **Start Flask Server:**
+     ```bash
+     npm run flask-dev
+     ```
+
+- **Start Redis:**
+     ```bash
+     redis-server
+     ```
+
+- **Start Celery Worker:**
+     ```bash
+     celery -A api.app.celery worker --loglevel=info
+     ```
+
+   - For further instructions or troubleshooting, refer to the respective documentation for Flask, Next.js, Redis, and Celery.
+
+
