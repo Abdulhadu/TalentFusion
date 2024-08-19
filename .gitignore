@@ -5,6 +5,10 @@
 /.pnp
 .pnp.js
 
+api/.env
+api/hr_recruiter/.env
+readme.txt
+
 # testing
 /coverage
 

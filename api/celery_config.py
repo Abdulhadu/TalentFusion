@@ -7,7 +7,6 @@ def make_celery(app):
         app.import_name,
         backend="redis://localhost:6379/0",
         broker="redis://localhost:6379/0"
-        
     )
     celery.conf.update(app.config)
     celery.set_default()

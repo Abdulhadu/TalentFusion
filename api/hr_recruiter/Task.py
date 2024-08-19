@@ -48,7 +48,6 @@ def task(user_id, user_folder_path, *video_paths, questions):
     num_questions = len(responses)
     bar_width = 0.2  
     values = np.arange(num_questions) * 3
-    
     analytical_tones = []
     tentative_tones = []
     fear_tones = []
