@@ -41,6 +41,7 @@ Talent Fusion is a Resume Analyzer and Job-Based Recruitment System designed to 
 - ftfy (for text cleaning)
 
 ## User Portal
+![user portal](public/UI%20ss/ui%20(1).jpg)
 
 ### Steps Involved
 1. Get the resume from the user.
@@ -73,7 +74,7 @@ Talent Fusion is a Resume Analyzer and Job-Based Recruitment System designed to 
 2. Job Recommendations System
 
 ## HR Recruiter Portal
-
+![user portal](public/UI%20ss/ui%20(25).jpg)
 ### Steps Involved
 1. Find Deployment Attrition from the Dataset.
 2. Apply Classifier Algorithm.
