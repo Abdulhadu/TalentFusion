@@ -72,8 +72,8 @@ COMPANY_MAIL = config('company_mail')
 COMPANY_PSWD = config('company_pswd')
 SECRET_KEY = "python_jwt"
  
-# GOOGLE_API_KEY="AIzaSyC6Q5NHUmGfAdrDk5HPqpWeitKk-9h2Id0"
-API_KEY = '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'
+# This is api key for the OPen AI API that is used for question generation 
+API_KEY = ''
 db_config = {
     'host': 'localhost',
     'user': 'root',
@@ -788,8 +788,6 @@ def predict():
            with open(result_filepath, 'w') as result_file:
               json.dump(result, result_file)
 
-        #    with open('./static/result.json', 'w') as file:
-        #        json.dump(result, file)
            response_data = {
                 'success': True,
                 'message': 'Prediction successful',
