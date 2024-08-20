@@ -71,8 +71,6 @@ MAIL_PWD = config('mail_pwd')
 COMPANY_MAIL = config('company_mail')
 COMPANY_PSWD = config('company_pswd')
 SECRET_KEY = "python_jwt"
- 
-# This is api key for the OPen AI API that is used for question generation 
 
 db_config = {
     'host': 'localhost',
